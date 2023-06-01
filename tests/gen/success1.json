@@ -1,0 +1,8 @@
+{
+  "topology": {
+      "random": {
+          "node_num": 10,
+          "random_seed": 42
+      }
+  }
+}
