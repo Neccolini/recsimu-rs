@@ -1,6 +1,6 @@
 use clap::{Arg, ArgAction, Command};
 use recsimu::gen::config::Config;
-use recsimu::sim::simulation::SimBuilder;
+use recsimu::sim::SimBuilder;
 use std::error;
 use std::path::PathBuf;
 fn main() -> Result<(), Box<dyn error::Error>> {
