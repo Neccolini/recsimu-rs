@@ -6,8 +6,8 @@ use self::flit::{AckFlit, Flit};
 use self::state::State;
 pub struct Hardware {
     pub state: State,
-    pub retransmission_buffer: Flit,
-    pub ack_buffer: Flit,
+    retransmission_buffer: Flit,
+    ack_buffer: Flit,
 }
 
 impl Hardware {
