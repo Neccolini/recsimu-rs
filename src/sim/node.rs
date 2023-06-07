@@ -42,20 +42,22 @@ impl Node {
         self.hardware.update();
     }
 
-    pub fn receive_flit(&mut self, flit: &Flit) {
+    pub fn receive_flit(&mut self, flit: &Flit) -> Result<(), Box<dyn std::error::Error>> {
         // Data, Header Flitの場合はackを生成する
         // Ack Flitの場合はtransmission_bufferを更新する
         match flit {
             Flit::Data(_) | Flit::Header(_) => {
-                self.hardware.ack_gen(flit);
+                let _ack = self.hardware.ack_gen(flit)?;
             }
             Flit::Ack(_) => {
-                self.hardware.receive_ack(flit);
+                let _ack = self.hardware.receive_ack(flit)?;
             }
             _ => {
                 panic!("receive_flit: flit is not header, data, or ack {flit:?}");
             }
         }
         self.network.receive_flit(flit);
+
+        Ok(())
     }
 }
