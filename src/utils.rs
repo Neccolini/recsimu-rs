@@ -21,3 +21,18 @@ where
     std::fs::write(path, json_str)?;
     Ok(())
 }
+
+use num_traits::One;
+
+pub fn div_ceil<T>(dividend: T, divisor: T) -> T
+where
+    T: std::ops::Div<Output = T>
+        + std::ops::Add<Output = T>
+        + std::cmp::PartialOrd
+        + std::ops::Sub<Output = T>
+        + std::ops::Mul<Output = T>
+        + Copy
+        + One,
+{
+    (dividend + divisor - T::one()) / divisor
+}
