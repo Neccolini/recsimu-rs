@@ -34,15 +34,17 @@ impl Nodes {
         }
         // バッファにあるメッセージを受信
         for node in self.nodes.iter_mut() {
-            // バッファにあるメッセージを受信
-            let flits = self.flit_buffers.get(&node.id).unwrap();
+            let flits = self.flit_buffers.get(&node.id);
+            if flits.is_none() {
+                continue;
+            }
+            let flits = flits.unwrap();
+
             // バッファのメッセージが衝突したら、衝突したノードのメッセージを破棄
             if flits.len() == 1 {
                 let flit = &flits[0];
 
                 if let State::Idle(_) | State::Receiving | State::Waiting = node.hardware.state {
-                    // 受信成功
-                    // メッセージを受信
                     node.receive_flit(flit);
                 }
             }
