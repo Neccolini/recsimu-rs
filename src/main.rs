@@ -1,5 +1,6 @@
 use clap::{Arg, ArgAction, Command};
-use recsimu::gen;
+use recsimu::gen::config::Config;
+use recsimu::sim::simulation::SimBuilder;
 use std::error;
 use std::path::PathBuf;
 fn main() -> Result<(), Box<dyn error::Error>> {
@@ -30,6 +31,24 @@ fn main() -> Result<(), Box<dyn error::Error>> {
                         .required(false),
                 ),
         )
+        .subcommand(
+            Command::new("run")
+                .about("run simulation")
+                .arg(
+                    Arg::new("input_file_path")
+                        .short('i')
+                        .long("input")
+                        .action(ArgAction::Set)
+                        .num_args(1)
+                        .required(true),
+                )
+                .arg(
+                    Arg::new("verbose")
+                        .long("verbose")
+                        .action(ArgAction::SetTrue)
+                        .required(false),
+                ),
+        )
         .get_matches();
 
     match matches.subcommand() {
@@ -43,10 +62,17 @@ fn main() -> Result<(), Box<dyn error::Error>> {
                 &default_output
             };
 
-            let mut config = gen::Config::new(PathBuf::from(input), PathBuf::from(output))?;
+            let mut config = Config::new(PathBuf::from(input), PathBuf::from(output))?;
 
             config.build();
             config.generate()?;
+        }
+        Some(("run", run_matches)) => {
+            let input = run_matches.get_one::<String>("input_file_path").unwrap();
+            // let verbose = run_matches.contains_id("verbose");
+            let mut sim = SimBuilder::new(PathBuf::from(input)).build()?;
+
+            sim.run();
         }
         _ => unreachable!(),
     };
