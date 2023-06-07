@@ -28,7 +28,7 @@ impl Node {
         // フリットを送信する
         // ネットワーク層からフリットを受け取る
         let flit = self.network.send_flit().unwrap(); // todo error handling
-                                                      // hardwareでフリットを送信する
+
         self.hardware.send_flit(&flit).map_err(|e| {
             println!("error occured while sending a flit: {:?}", e);
             e
