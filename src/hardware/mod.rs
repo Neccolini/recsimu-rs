@@ -22,16 +22,16 @@ impl Hardware {
 
 // nodeが使用するAPI
 impl Hardware {
-    pub fn send_flit(&mut self, flit: &Flit) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn send_flit(&mut self, flit: &Flit) -> Result<Flit, Box<dyn std::error::Error>> {
         self.retransmission_buffer = flit.clone();
-        Ok(())
+        Ok(flit.clone())
     }
 
     pub fn update(&mut self) {}
 
-    pub fn ack_gen(&mut self, flit: &Flit) {
+    pub fn ack_gen(&mut self, flit: &Flit) -> Result<Flit, Box<dyn std::error::Error>> {
         if let Flit::Ack(_) = flit {
-            return;
+            return Err("ack_gen: flit is ack".into());
         }
 
         // flitの中身を取り出す
@@ -65,9 +65,11 @@ impl Hardware {
             packet_id: rcv_packet_id,
             flit_num,
         });
+
+        Ok(self.ack_buffer.clone())
     }
 
-    pub fn receive_ack(&mut self, flit: &Flit) {
+    pub fn receive_ack(&mut self, flit: &Flit) -> Result<Flit, Box<dyn std::error::Error>> {
         // 受信したackの中身を取り出す
         if let Flit::Ack(ack_flit) = flit {
             let ack_flit = ack_flit.clone();
@@ -103,8 +105,12 @@ impl Hardware {
             {
                 // ackを受信したのでretransmission_bufferをクリアする
                 self.retransmission_buffer = Flit::default();
+                Ok(flit.clone())
             } else {
-                dbg!("receive_ack: ack is not matched {ack_flit:?} {self.retransmission_buffer:?}");
+                Err(
+                    "receive_ack: ack is not matched {ack_flit:?} {self.retransmission_buffer:?}"
+                        .into(),
+                )
             }
         } else {
             panic!("receive_ack: flit is not ack {flit:?}");
