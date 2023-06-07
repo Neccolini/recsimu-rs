@@ -22,9 +22,9 @@ impl Hardware {
 
 // nodeが使用するAPI
 impl Hardware {
-    pub fn send_flit(&mut self, flit: Flit) -> Result<Flit, Box<dyn std::error::Error>> {
+    pub fn send_flit(&mut self, flit: &Flit) -> Result<(), Box<dyn std::error::Error>> {
         self.retransmission_buffer = flit.clone();
-        Ok(flit)
+        Ok(())
     }
 
     pub fn update(&mut self) {}

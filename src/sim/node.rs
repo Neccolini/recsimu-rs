@@ -27,9 +27,14 @@ impl Node {
     pub fn send_flit(&mut self) -> Result<Flit, Box<dyn std::error::Error>> {
         // フリットを送信する
         // ネットワーク層からフリットを受け取る
-        let flit = self.network.send_flit().unwrap();
-        // hardwareでフリットを送信する
-        self.hardware.send_flit(flit)
+        let flit = self.network.send_flit().unwrap(); // todo error handling
+                                                      // hardwareでフリットを送信する
+        self.hardware.send_flit(&flit).map_err(|e| {
+            println!("error occured while sending a flit: {:?}", e);
+            e
+        })?;
+
+        Ok(flit)
     }
 
     pub fn update(&mut self, _cur_cycle: u32) {
