@@ -17,6 +17,7 @@ pub enum Flit {
 pub struct HeaderFlit {
     pub source_id: NodeId,
     pub dest_id: NodeId,
+    pub next_id: NodeId,
     pub packet_id: PacketId,
     pub flits_len: u32,
 }
@@ -25,6 +26,7 @@ pub struct HeaderFlit {
 pub struct DataFlit {
     pub source_id: NodeId,
     pub dest_id: NodeId,
+    pub next_id: NodeId,
     pub packet_num: u32,
     pub flit_num: u32,
     pub resend_num: u32,
@@ -45,6 +47,7 @@ pub fn data_to_flits(
     data: Vec<u8>,
     source_id: NodeId,
     dest_id: NodeId,
+    next_id: NodeId,
     packet_num: u32,
     packet_id: PacketId,
 ) -> Vec<Flit> {
@@ -55,6 +58,7 @@ pub fn data_to_flits(
     flits.push(Flit::Header(HeaderFlit {
         source_id: source_id.clone(),
         dest_id: dest_id.clone(),
+        next_id: next_id.clone(),
         packet_id,
         flits_len,
     }));
@@ -62,8 +66,9 @@ pub fn data_to_flits(
     // DATA_BYTE_PER_FLITでdataを分割する
     for (flit_num, data_chunk) in data.chunks(DATA_BYTE_PER_FLIT as usize).enumerate() {
         flits.push(Flit::Data(DataFlit {
-            source_id: source_id.clone(),
-            dest_id: dest_id.clone(),
+            source_id,
+            dest_id,
+            next_id,
             packet_num,
             flit_num: flit_num as u32,
             resend_num: 0,
