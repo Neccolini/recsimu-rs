@@ -1,32 +1,65 @@
+pub mod flit_buffer;
 pub mod protocols;
-pub mod routing_function;
 
-use self::routing_function::RoutingFunction;
+use self::flit_buffer::FlitBuffer;
+use self::protocols::NetworkProtocol;
 use crate::hardware::flit::Flit;
+use crate::network::protocols::packets::GeneralPacket;
+use std::collections::HashMap;
+
+pub type ChannelId = u32;
 
 pub struct Network {
-    pub routing_function: RoutingFunction,
-    pub sending_flit_buffer: Vec<Flit>,
-    pub receiving_flit_buffer: Vec<Flit>,
+    pub routing: NetworkProtocol,
+    pub sending_flit_buffer: HashMap<ChannelId, FlitBuffer>,
+    pub receiving_flit_buffer: HashMap<ChannelId, FlitBuffer>,
 }
 
 impl Network {
     pub fn new() -> Self {
         Self {
-            routing_function: RoutingFunction::default(),
-            sending_flit_buffer: Vec::new(),
-            receiving_flit_buffer: Vec::new(),
+            routing: NetworkProtocol::default(),
+            sending_flit_buffer: HashMap::new(),
+            receiving_flit_buffer: HashMap::new(),
         }
     }
 
-    pub fn send_flit(&mut self) -> Option<Flit> {
-        self.sending_flit_buffer.pop()
+    pub fn send_flit(&mut self, channel_id: ChannelId) -> Option<Flit> {
+        // sending_flit_bufferのchannel_id番目のFlitBufferからpopする
+        self.sending_flit_buffer.get_mut(&channel_id).unwrap().pop()
     }
 
-    pub fn update(&mut self) {}
+    pub fn update(&mut self) {
+        // 送信待ちのパケットを取りに行く
+        if let Some(flits) = self.routing.send_packet() {
+            // 送信待ちのパケットがあったら
+            // sending_flit_bufferのchannel_id番目のFlitBufferにpushする
+            for flit in flits {
+                let channel_id = match flit.clone() {
+                    Flit::Header(head) => head.channel_id,
+                    Flit::Data(data) => data.channel_id,
+                    Flit::Ack(ack) => ack.channel_id,
+                    Flit::Empty => panic!("Empty flit is not allowed to be sent"),
+                };
 
-    pub fn receive_flit(&mut self, flit: &Flit) {
-        self.receiving_flit_buffer.push(flit.clone());
+                self.sending_flit_buffer
+                    .get_mut(&channel_id)
+                    .unwrap()
+                    .push(flit);
+            }
+        }
+    }
+
+    pub fn receive_flit(&mut self, flit: &Flit, channel_id: ChannelId) {
+        // receiving_flit_bufferのchannel_id番目のFlitBufferにpushする
+        self.receiving_flit_buffer
+            .get_mut(&channel_id)
+            .unwrap()
+            .push(flit.clone());
+    }
+
+    pub fn send_new_packet(&mut self, packet: &GeneralPacket) {
+        self.routing.push_new_packet(packet);
     }
 }
 

@@ -25,27 +25,39 @@ impl Nodes {
     fn message_handle(&mut self, _cur_cycle: u32) {
         // 送信状態のノードはflitを送信
         for node in self.nodes.iter_mut() {
-            if let State::Sending | State::ReplyAck = node.hardware.state {
-                let flit = node.send_flit().unwrap();
-                // flit_buffersに追加
-                let buffer = self.flit_buffers.get_mut(&node.id).unwrap();
-                buffer.push(flit);
+            // todo 後でnodeに切り出す
+            match node.hardware.state.get() {
+                State::Sending => {
+                    let flit = node.send_flit().unwrap();
+                    // flit_buffersに追加
+                    let buffer = self.flit_buffers.get_mut(&node.id).unwrap();
+                    buffer.push(flit);
+                }
+                State::ReplyAck => {
+                    let ack = node.send_ack().unwrap();
+                    // flit_buffersに追加
+                    let buffer = self.flit_buffers.get_mut(&node.id).unwrap();
+                    buffer.push(ack);
+                }
+                _ => {}
             }
         }
         // バッファにあるメッセージを受信
         for node in self.nodes.iter_mut() {
+            // todo nodeに切り出す
             let flits = self.flit_buffers.get(&node.id);
             if flits.is_none() {
                 continue;
             }
             let flits = flits.unwrap();
 
-            // バッファのメッセージが衝突したら、衝突したノードのメッセージを破棄
+            // 衝突がなければ受信
             if flits.len() == 1 {
                 let flit = &flits[0];
 
-                if let State::Idle(_) | State::Receiving | State::Waiting = node.hardware.state {
-                    node.receive_flit(flit);
+                if let State::Idle | State::Waiting(_) = node.hardware.state.get() {
+                    // 状態を受信中に変更
+                    let _ = node.receive_flit(flit);
                 }
             }
         }

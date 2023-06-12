@@ -3,9 +3,10 @@ pub mod flit;
 pub mod state;
 
 use self::flit::{AckFlit, Flit};
-use self::state::State;
+use self::state::{NodeState, State};
+#[derive(Default)]
 pub struct Hardware {
-    pub state: State,
+    pub state: NodeState,
     retransmission_buffer: Flit,
     ack_buffer: Flit,
 }
@@ -13,7 +14,7 @@ pub struct Hardware {
 impl Hardware {
     pub fn new() -> Self {
         Self {
-            state: State::default(),
+            state: NodeState::default(),
             retransmission_buffer: Flit::default(),
             ack_buffer: Flit::default(),
         }
@@ -27,15 +28,92 @@ impl Hardware {
         Ok(flit.clone())
     }
 
-    pub fn update(&mut self) {}
+    pub fn send_ack(&mut self) -> Result<Flit, Box<dyn std::error::Error>> {
+        let ack = self.ack_buffer.clone();
+        assert!(
+            ack.is_ack(),
+            "send_ack: flit in the buffer is not ack flit: {0:?}",
+            ack
+        );
 
-    pub fn ack_gen(&mut self, flit: &Flit) -> Result<Flit, Box<dyn std::error::Error>> {
+        self.ack_buffer.clear();
+
+        Ok(ack)
+    }
+
+    pub fn receive_flit(
+        &mut self,
+        flit: &Flit,
+    ) -> Result<Option<Flit>, Box<dyn std::error::Error>> {
+        // Data, Header Flitの場合はackを生成する
+        // Ack Flitの場合はtransmission_bufferを更新する
+        match flit {
+            Flit::Data(_) | Flit::Header(_) => {
+                let _ack = self.ack_gen(flit)?;
+                Ok(Some(flit.clone()))
+            }
+            Flit::Ack(_) => {
+                let _ack = self.receive_ack(flit)?;
+                Ok(None)
+            }
+            _ => {
+                panic!("receive_flit: flit is not header, data, or ack {flit:?}");
+            }
+        }
+    }
+
+    pub fn update_state(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        // stateを更新する
+        match self.state.get() {
+            State::Idle => {
+                // retransmission_bufferが空でない場合は送信状態へ遷移
+                if let Flit::Data(_) | Flit::Header(_) = self.retransmission_buffer {
+                    self.state.next(&State::Sending);
+                }
+            }
+            State::Receiving => {
+                self.state.next(&State::ReplyAck);
+            }
+            State::ReplyAck => {
+                self.state.next(&State::Idle);
+            }
+            State::Sending => {
+                self.state.next(&State::waiting_state(0)); // todo 0を変数にする
+            }
+            State::Waiting(_) => {
+                let remaining_cycles = match self.state.get() {
+                    State::Waiting(state::Waiting { remaining_cycles }) => *remaining_cycles,
+                    _ => panic!("update_state: state is not waiting"),
+                };
+
+                if remaining_cycles == 0 {
+                    self.state.next(&State::Sending);
+                } else {
+                    self.state.next(&State::waiting_state(remaining_cycles - 1))
+                }
+            }
+        }
+        Ok(())
+    }
+
+    pub fn set_state(&mut self, state: &State) {
+        self.state.next(state);
+    }
+
+    pub fn check_flit(&self, _flit: &Flit) -> Result<Option<Flit>, Box<dyn std::error::Error>> {
+        unimplemented!();
+    }
+}
+
+// 外部に公開しない関数
+impl Hardware {
+    fn ack_gen(&mut self, flit: &Flit) -> Result<Flit, Box<dyn std::error::Error>> {
         if let Flit::Ack(_) = flit {
             return Err("ack_gen: flit is ack".into());
         }
 
         // flitの中身を取り出す
-        let (rcv_source_id, rcv_dest_id, rcv_packet_id, flit_num) = match flit {
+        let (rcv_source_id, rcv_dest_id, rcv_packet_id, flit_num, channel_id) = match flit {
             Flit::Header(header_flit) => {
                 let header_flit = header_flit.clone();
                 (
@@ -43,6 +121,7 @@ impl Hardware {
                     header_flit.dest_id,
                     header_flit.packet_id,
                     0,
+                    header_flit.channel_id,
                 )
             }
             Flit::Data(data_flit) => {
@@ -52,6 +131,7 @@ impl Hardware {
                     data_flit.dest_id,
                     data_flit.packet_id,
                     data_flit.flit_num,
+                    data_flit.channel_id,
                 )
             }
             _ => {
@@ -64,12 +144,13 @@ impl Hardware {
             dest_id: rcv_source_id,
             packet_id: rcv_packet_id,
             flit_num,
+            channel_id,
         });
 
         Ok(self.ack_buffer.clone())
     }
 
-    pub fn receive_ack(&mut self, flit: &Flit) -> Result<Flit, Box<dyn std::error::Error>> {
+    fn receive_ack(&mut self, flit: &Flit) -> Result<Flit, Box<dyn std::error::Error>> {
         // 受信したackの中身を取り出す
         if let Flit::Ack(ack_flit) = flit {
             let ack_flit = ack_flit.clone();
@@ -115,11 +196,5 @@ impl Hardware {
         } else {
             panic!("receive_ack: flit is not ack {flit:?}");
         }
-    }
-}
-
-impl Default for Hardware {
-    fn default() -> Self {
-        Self::new()
     }
 }
