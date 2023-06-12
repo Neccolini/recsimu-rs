@@ -1,3 +1,4 @@
+pub mod file;
 pub mod gen;
 pub mod hardware;
 pub mod log;

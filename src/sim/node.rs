@@ -9,6 +9,7 @@ use crate::sim::node_type::NodeType;
 
 pub type NodeId = String;
 pub type CycleNum = u32;
+
 pub struct Node {
     pub id: NodeId,
     pub node_type: NodeType,

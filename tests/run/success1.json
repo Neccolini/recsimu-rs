@@ -1,0 +1,23 @@
+{
+  "node_num": 2,
+  "total_cycles": 10,
+  "channel_num": 1,
+  "nodes": [
+    {
+      "node_id": "node1",
+      "node_type": "coordinator"
+    },
+    {
+      "node_id": "node2",
+      "node_type": "router"
+    }
+  ],
+  "packets": [
+    {
+      "cycle_num": 1,
+      "src_id": "node1",
+      "dest_id": "node2",
+      "msg": "Hello, World!"
+    }
+  ]
+}
