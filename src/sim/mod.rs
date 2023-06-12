@@ -2,7 +2,7 @@ pub mod node;
 pub(crate) mod node_type;
 pub mod nodes;
 
-use crate::file::{InputFile, PacketInfo};
+use crate::file::InputFile;
 use crate::log::Log;
 use crate::network::protocols::packets::GeneralPacket;
 use std::collections::HashMap;
