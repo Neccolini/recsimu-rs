@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use crate::hardware::flit::Flit;
-use crate::hardware::Hardware;
 use crate::hardware::state::State;
+use crate::hardware::Hardware;
 use crate::network::protocols::packets::GeneralPacket;
 use crate::network::Network;
 use crate::sim::node_type::NodeType;
