@@ -1,9 +1,9 @@
 use crate::hardware::flit::Flit;
 
 pub struct GeneralPacket {
-    message: String,
-    dest_id: String,
-    source_id: String,
+    pub message: String,
+    pub dest_id: String,
+    pub source_id: String,
 }
 
 #[derive(Clone, Debug)]

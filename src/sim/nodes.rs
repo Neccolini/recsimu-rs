@@ -9,9 +9,9 @@ pub struct Nodes {
 }
 
 impl Nodes {
-    pub fn new() -> Self {
+    pub fn new(nodes: Vec<Node>) -> Self {
         Self {
-            nodes: Vec::new(),
+            nodes,
             flit_buffers: HashMap::new(),
         }
     }
@@ -69,11 +69,5 @@ impl Nodes {
         for node in self.nodes.iter_mut() {
             node.update(cur_cycle);
         }
-    }
-}
-
-impl Default for Nodes {
-    fn default() -> Self {
-        Self::new()
     }
 }

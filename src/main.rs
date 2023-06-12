@@ -69,8 +69,8 @@ fn main() -> Result<(), Box<dyn error::Error>> {
         }
         Some(("run", run_matches)) => {
             let input = run_matches.get_one::<String>("input_file_path").unwrap();
-            // let verbose = run_matches.contains_id("verbose");
-            let mut sim = SimBuilder::new(PathBuf::from(input)).build()?;
+            let verbose = run_matches.contains_id("verbose");
+            let mut sim = SimBuilder::new(PathBuf::from(input), verbose).build()?;
 
             sim.run();
         }
