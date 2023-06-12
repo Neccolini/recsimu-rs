@@ -55,7 +55,8 @@ impl SimBuilder {
             node_num: input.node_num,
             debug: self.verbose,
             nodes: Nodes::new(nodes),
-            total_cycles: 0,
+            total_cycles: input.total_cycles,
+            vc_num: input.channel_num,
             log: Log::new(),
             cur_cycles: 0,
         })
@@ -66,6 +67,7 @@ pub struct Sim {
     pub node_num: u32,
     pub total_cycles: u32,
     pub cur_cycles: u32,
+    pub vc_num: u32,
     pub nodes: Nodes,
     pub debug: bool,
     pub log: Log,
@@ -78,5 +80,33 @@ impl Sim {
             self.nodes.run_cycle(self.cur_cycles);
             self.cur_cycles += 1;
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_sim_build() {
+        let path = PathBuf::from("tests/run/success1.json");
+        let sim_builder = SimBuilder::new(path, false);
+        let sim = sim_builder.build().unwrap();
+
+        assert_eq!(sim.node_num, 2);
+        assert_eq!(sim.total_cycles, 10);
+        assert_eq!(sim.vc_num, 1);
+        assert_eq!(sim.cur_cycles, 0);
+        assert_eq!(sim.debug, false);
+        assert_eq!(sim.nodes.nodes.len(), 2);
+        assert_eq!(sim.nodes.nodes[0].id, "node1");
+        assert_eq!(sim.nodes.nodes[0].node_type, NodeType::Coordinator);
+        assert_eq!(sim.nodes.nodes[0].packets.len(), 1);
+        assert_eq!(sim.nodes.nodes[0].packets[&1].source_id, "node1");
+        assert_eq!(sim.nodes.nodes[0].packets[&1].dest_id, "node2");
+        assert_eq!(sim.nodes.nodes[0].packets[&1].message, "Hello, World!");
+        assert_eq!(sim.nodes.nodes[1].id, "node2");
+        assert_eq!(sim.nodes.nodes[1].node_type, NodeType::Router);
+        assert_eq!(sim.nodes.nodes[1].packets.len(), 0);
     }
 }

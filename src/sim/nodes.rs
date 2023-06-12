@@ -4,8 +4,8 @@ use crate::sim::node::{Node, NodeId};
 use std::collections::HashMap;
 
 pub struct Nodes {
-    nodes: Vec<Node>,
-    flit_buffers: HashMap<NodeId, Vec<Flit>>,
+    pub nodes: Vec<Node>,
+    pub flit_buffers: HashMap<NodeId, Vec<Flit>>,
 }
 
 impl Nodes {
