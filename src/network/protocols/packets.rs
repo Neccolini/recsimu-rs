@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug)]
 pub struct GeneralPacket {
     pub message: String,
     pub dest_id: String,
