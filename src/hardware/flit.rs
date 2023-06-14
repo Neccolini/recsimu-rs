@@ -33,6 +33,15 @@ impl Flit {
     pub fn clear(&mut self) {
         *self = Flit::Empty;
     }
+
+    pub fn get_next_id(&self) -> Option<NodeId> {
+        match self {
+            Flit::Header(flit) => Some(flit.next_id.clone()),
+            Flit::Data(flit) => Some(flit.next_id.clone()),
+            Flit::Ack(flit) => Some(flit.source_id.clone()),
+            Flit::Empty => None,
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
