@@ -102,3 +102,30 @@ pub fn data_to_flits(
     }
     flits
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_data_to_flits() {
+        let data = vec![0; 100];
+        let source_id = "source".to_string();
+        let dest_id = "dest".to_string();
+        let next_id = "next".to_string();
+        let packet_id = 0;
+        let channel_id = 0;
+        let flits = data_to_flits(
+            data,
+            source_id.clone(),
+            dest_id.clone(),
+            next_id.clone(),
+            packet_id,
+            channel_id,
+        );
+        assert_eq!(flits.len(), 5);
+        assert!(flits[0].is_header());
+        assert!(flits[1].is_data());
+        assert!(flits[2].is_data());
+        assert!(flits[3].is_data());
+    }
+}
