@@ -31,18 +31,23 @@ impl Nodes {
                 State::Sending => {
                     let flit = node.send_flit().unwrap();
                     // flit_buffersに追加
-                    let buffer = self.flit_buffers.get_mut(&node.id).unwrap();
-                    buffer.push(flit);
+                    if let Some(receiver_id) = flit.get_next_id() {
+                        let buffer = self.flit_buffers.entry(receiver_id).or_insert(Vec::new());
+                        buffer.push(flit);
+                    }
                 }
                 State::ReplyAck => {
                     let ack = node.send_ack().unwrap();
                     // flit_buffersに追加
-                    let buffer = self.flit_buffers.get_mut(&node.id).unwrap();
-                    buffer.push(ack);
+                    if let Some(receiver_id) = ack.get_next_id() {
+                        let buffer = self.flit_buffers.entry(receiver_id).or_insert(Vec::new());
+                        buffer.push(ack);
+                    }
                 }
                 _ => {}
             }
         }
+        dbg!("flit_buffers: {:?}", &self.flit_buffers);
         // バッファにあるメッセージを受信
         for node in self.nodes.iter_mut() {
             // todo nodeに切り出す
@@ -68,7 +73,12 @@ impl Nodes {
     fn update_nodes(&mut self, cur_cycle: u32) {
         // 各ノードの状態を更新する
         for node in self.nodes.iter_mut() {
-            node.update(cur_cycle);
+            let _ = node.update(cur_cycle).map_err(|e| {
+                panic!(
+                    "node: {}, cur_cycle: {} update error: {:?}",
+                    node.id, e, cur_cycle
+                );
+            });
         }
     }
 }

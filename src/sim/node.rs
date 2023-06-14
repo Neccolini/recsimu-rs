@@ -58,7 +58,7 @@ impl Node {
         Ok(ack)
     }
 
-    pub fn update(&mut self, cur_cycle: u32) {
+    pub fn update(&mut self, cur_cycle: u32) -> Result<(), Box<dyn std::error::Error>> {
         // packetsにcur_cycleが含まれていたら
         if let Some(packet) = self.packets.get(&cur_cycle) {
             // 新規パケットを生成
@@ -66,6 +66,25 @@ impl Node {
         }
 
         self.network.update();
+
+        // retransmission_bufferが空なら
+        if self.hardware.retransmission_buffer.is_empty() {
+            // 仮想channelを選択
+            let channel = self.select_vc();
+            // network.send_flit_bufferからフリットを取り出す
+            if let Some(flit_buffer) = self.network.sending_flit_buffer.get_mut(&channel) {
+                //flit_bufferからフリットを取り出し，送信
+                let flit = flit_buffer.pop();
+                if flit.is_some() {
+                    self.hardware.send_flit(&flit.unwrap())?;
+                }
+            }
+        }
+
+        // ハードウェアの状態を更新
+        self.hardware.update_state()?;
+
+        Ok(())
     }
 
     pub fn receive_flit(&mut self, flit: &Flit) -> Result<(), Box<dyn std::error::Error>> {
@@ -75,5 +94,11 @@ impl Node {
             self.network.receive_flit(&flit, 0);
         }
         Ok(())
+    }
+}
+
+impl Node {
+    fn select_vc(&self) -> u32 {
+        0 // todo 複数チャネルに対応
     }
 }
