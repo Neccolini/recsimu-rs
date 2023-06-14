@@ -5,7 +5,7 @@ use uuid::Uuid;
 pub type PacketId = Uuid;
 pub type NodeId = String;
 
-#[derive(Clone, Default, Debug)]
+#[derive(Clone, Default, Debug, PartialEq)]
 pub enum Flit {
     Header(HeaderFlit),
     Data(DataFlit),
@@ -35,7 +35,7 @@ impl Flit {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct HeaderFlit {
     pub source_id: NodeId,
     pub dest_id: NodeId,
@@ -45,7 +45,7 @@ pub struct HeaderFlit {
     pub channel_id: ChannelId,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct DataFlit {
     pub source_id: NodeId,
     pub dest_id: NodeId,
@@ -57,7 +57,7 @@ pub struct DataFlit {
     pub channel_id: ChannelId,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct AckFlit {
     pub source_id: NodeId,
     pub dest_id: NodeId,
