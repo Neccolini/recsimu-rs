@@ -38,6 +38,7 @@ impl SimBuilder {
                                 source_id: packet.src_id.clone(),
                                 dest_id: packet.dest_id.clone(),
                                 message: packet.msg.clone(),
+                                packet_id: 0,
                             },
                         )
                     })
@@ -46,6 +47,7 @@ impl SimBuilder {
                 Node::new(
                     node.node_id.clone(),
                     NodeType::new(&node.node_type),
+                    input.channel_num,
                     packets,
                 )
             })

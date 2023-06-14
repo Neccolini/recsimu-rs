@@ -28,6 +28,7 @@ impl NetworkProtocol {
         }
     }
 
+    // すべてのフリットが到達した時に呼ばれる
     #[allow(dead_code)]
     pub(crate) fn receive_packet(&mut self, packet: &GeneralPacket) {
         match self {

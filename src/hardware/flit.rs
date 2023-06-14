@@ -40,7 +40,7 @@ pub struct HeaderFlit {
     pub source_id: NodeId,
     pub dest_id: NodeId,
     pub next_id: NodeId,
-    pub packet_id: PacketId,
+    pub packet_id: u32,
     pub flits_len: u32,
     pub channel_id: ChannelId,
 }
@@ -53,7 +53,7 @@ pub struct DataFlit {
     pub flit_num: u32,
     pub resend_num: u8,
     pub data: Vec<u8>,
-    pub packet_id: PacketId,
+    pub packet_id: u32,
     pub channel_id: ChannelId,
 }
 
@@ -61,7 +61,7 @@ pub struct DataFlit {
 pub struct AckFlit {
     pub source_id: NodeId,
     pub dest_id: NodeId,
-    pub packet_id: PacketId,
+    pub packet_id: u32,
     pub flit_num: u32,
     pub channel_id: ChannelId,
 }
@@ -71,7 +71,7 @@ pub fn data_to_flits(
     source_id: NodeId,
     dest_id: NodeId,
     next_id: NodeId,
-    packet_id: PacketId,
+    packet_id: u32,
     channel_id: ChannelId,
 ) -> Vec<Flit> {
     let mut flits = Vec::new();

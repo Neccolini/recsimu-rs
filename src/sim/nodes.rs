@@ -26,6 +26,7 @@ impl Nodes {
         // 送信状態のノードはflitを送信
         for node in self.nodes.iter_mut() {
             // todo 後でnodeに切り出す
+            dbg!(&node.id, node.hardware.state.get());
             match node.hardware.state.get() {
                 State::Sending => {
                     let flit = node.send_flit().unwrap();

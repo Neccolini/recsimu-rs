@@ -20,12 +20,17 @@ pub struct Node {
 }
 
 impl Node {
-    pub fn new(id: String, node_type: NodeType, packets: HashMap<CycleNum, GeneralPacket>) -> Self {
+    pub fn new(
+        id: String,
+        node_type: NodeType,
+        vc_num: u32,
+        packets: HashMap<CycleNum, GeneralPacket>,
+    ) -> Self {
         Self {
             id,
             node_type,
             alive: true,
-            network: Network::new(),
+            network: Network::new(vc_num),
             hardware: Hardware::new(),
             packets,
         }

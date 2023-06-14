@@ -16,11 +16,21 @@ pub struct Network {
 }
 
 impl Network {
-    pub fn new() -> Self {
+    pub fn new(vc_num: ChannelId) -> Self {
+        // sending_flit_bufferとreceiving_flit_bufferを初期化する
+        // 0...vc_num-1のchannel_idを持つFlitBufferを生成する
+        let mut sending_flit_buffer = HashMap::new();
+        let mut receiving_flit_buffer = HashMap::new();
+
+        for i in 0..vc_num {
+            sending_flit_buffer.insert(i, FlitBuffer::new());
+            receiving_flit_buffer.insert(i, FlitBuffer::new());
+        }
+
         Self {
             routing: NetworkProtocol::default(),
-            sending_flit_buffer: HashMap::new(),
-            receiving_flit_buffer: HashMap::new(),
+            sending_flit_buffer,
+            receiving_flit_buffer,
         }
     }
 
@@ -60,11 +70,5 @@ impl Network {
 
     pub fn send_new_packet(&mut self, packet: &GeneralPacket) {
         self.routing.push_new_packet(packet);
-    }
-}
-
-impl Default for Network {
-    fn default() -> Self {
-        Self::new()
     }
 }
