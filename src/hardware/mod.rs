@@ -7,8 +7,8 @@ use self::state::{NodeState, State};
 #[derive(Default)]
 pub struct Hardware {
     pub state: NodeState,
-    retransmission_buffer: Flit,
-    ack_buffer: Flit,
+    pub retransmission_buffer: Flit,
+    pub ack_buffer: Flit,
 }
 
 impl Hardware {
