@@ -52,8 +52,9 @@ impl Hardware {
                 Ok(Some(flit.clone()))
             }
             Flit::Ack(_) => {
-                let _ack = self.receive_ack(flit)?;
-                Ok(None)
+                let ack = self.receive_ack(flit)?;
+                self.ack_buffer = ack;
+                Ok(Some(flit.clone()))
             }
             _ => {
                 panic!("receive_flit: flit is not header, data, or ack {flit:?}");
