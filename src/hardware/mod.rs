@@ -198,3 +198,68 @@ impl Hardware {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::network::flit::DataFlit;
+    #[test]
+    fn test_send_flit() {
+        let mut hardware = Hardware::new();
+
+        // データフリットを送信する
+        let flit = Flit::Data(DataFlit {
+            source_id: "source_id".to_string(),
+            dest_id: "dest_id".to_string(),
+            next_id: "next_id".to_string(),
+            resend_num: 0,
+            packet_id: 0,
+            flit_num: 0,
+            channel_id: 0,
+            data: vec![0; 8],
+        });
+
+        let sended_flit = hardware.send_flit(&flit).unwrap();
+        assert_eq!(sended_flit, flit.clone());
+        assert_eq!(hardware.retransmission_buffer, flit.clone());
+        // assert_eq!(hardware.state.get(), State::Sending);
+    }
+
+    #[test]
+    fn test_receive_flit() {
+        let mut hardware = Hardware::new();
+
+        // データフリットを受信する
+        let flit = Flit::Data(DataFlit {
+            source_id: "source_id".to_string(),
+            dest_id: "dest_id".to_string(),
+            next_id: "next_id".to_string(),
+            resend_num: 0,
+            packet_id: 0,
+            flit_num: 0,
+            channel_id: 0,
+            data: vec![0; 8],
+        });
+
+        let received_flit = hardware.receive_flit(&flit).unwrap();
+        assert_eq!(received_flit, Some(flit.clone()));
+        assert_eq!(hardware.ack_buffer.is_empty(), false);
+        assert_eq!(hardware.ack_buffer.is_ack(), true);
+
+        // transmission_bufferを設定
+        hardware.retransmission_buffer = flit.clone();
+
+        let ack = Flit::Ack(AckFlit {
+            source_id: "dest_id".to_string(),
+            dest_id: "source_id".to_string(),
+            packet_id: 0,
+            flit_num: 0,
+            channel_id: 0,
+        });
+
+        // ack
+        let _ack = hardware.receive_flit(&ack).unwrap();
+        assert_eq!(hardware.retransmission_buffer.is_empty(), true);
+        // assert_eq!(hardware.state.get(), State::ReplyAck);
+    }
+}
