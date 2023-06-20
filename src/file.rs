@@ -1,7 +1,7 @@
-use serde::Deserialize;
-use std::path::PathBuf;
-
 use crate::utils::read_json;
+use serde::Deserialize;
+use std::collections::HashMap;
+use std::path::PathBuf;
 
 #[derive(Deserialize)]
 pub struct InputFile {
@@ -10,6 +10,7 @@ pub struct InputFile {
     pub channel_num: u32,
     pub nodes: Vec<NodeInfo>,
     pub packets: Vec<PacketInfo>,
+    pub neighbors: HashMap<String, Vec<String>>,
 }
 
 #[derive(Deserialize)]

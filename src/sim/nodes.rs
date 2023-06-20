@@ -6,13 +6,16 @@ use std::collections::HashMap;
 pub struct Nodes {
     pub nodes: Vec<Node>,
     pub flit_buffers: HashMap<NodeId, Vec<Flit>>,
+    // ノードの隣接情報を保持するHashMap
+    pub neighbors: HashMap<NodeId, Vec<NodeId>>,
 }
 
 impl Nodes {
-    pub fn new(nodes: Vec<Node>) -> Self {
+    pub fn new(nodes: Vec<Node>, neighbors: HashMap<NodeId, Vec<NodeId>>) -> Self {
         Self {
             nodes,
             flit_buffers: HashMap::new(),
+            neighbors,
         }
     }
     pub fn run_cycle(&mut self, cur_cycle: u32) {
@@ -32,8 +35,25 @@ impl Nodes {
                     let flit = node.send_flit().unwrap();
                     // flit_buffersに追加
                     if let Some(receiver_id) = flit.get_next_id() {
-                        let buffer = self.flit_buffers.entry(receiver_id).or_insert(Vec::new());
-                        buffer.push(flit);
+                        // broadcastの場合はneighborsを見て，nodeに隣接するノードすべてに配信する
+                        if receiver_id == "broadcast" {
+                            let neighbors = self.neighbors.get(&node.id).unwrap();
+                            neighbors.iter().for_each(|neighbor| {
+                                let buffer = self
+                                    .flit_buffers
+                                    .entry(neighbor.clone())
+                                    .or_insert(Vec::new());
+                                buffer.push(flit.clone());
+                            });
+                        } else if let Some(neighbor_list) = self.neighbors.get(&node.id) {
+                            if neighbor_list.contains(&receiver_id) {
+                                let buffer = self
+                                    .flit_buffers
+                                    .entry(receiver_id.clone())
+                                    .or_insert(Vec::new());
+                                buffer.push(flit);
+                            }
+                        }
                     }
                 }
                 State::ReplyAck => {
@@ -100,10 +120,17 @@ mod tests {
         let mut packets = HashMap::new();
         packets.insert(0, packet);
 
-        let mut nodes = Nodes::new(vec![
-            Node::new("node1".to_string(), NodeType::Coordinator, 1, packets),
-            Node::new("node2".to_string(), NodeType::Router, 1, HashMap::new()),
-        ]);
+        let mut neighbors = HashMap::new();
+        neighbors.insert("node1".to_string(), vec!["node2".to_string()]);
+        neighbors.insert("node2".to_string(), vec!["node1".to_string()]);
+
+        let mut nodes = Nodes::new(
+            vec![
+                Node::new("node1".to_string(), NodeType::Coordinator, 1, packets),
+                Node::new("node2".to_string(), NodeType::Router, 1, HashMap::new()),
+            ],
+            neighbors,
+        );
 
         nodes.run_cycle(0);
 

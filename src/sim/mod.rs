@@ -56,7 +56,7 @@ impl SimBuilder {
         Ok(Sim {
             node_num: input.node_num,
             debug: self.verbose,
-            nodes: Nodes::new(nodes),
+            nodes: Nodes::new(nodes, input.neighbors),
             total_cycles: input.total_cycles,
             vc_num: input.channel_num,
             log: Log::new(),

@@ -85,6 +85,9 @@ impl DefaultProtocol {
         if let Some(node_id) = self.table.get(dest_id) {
             return node_id.clone();
         }
+        if dest_id == "broadcast" {
+            return "broadcast".to_string();
+        }
         self.parent_id.clone()
     }
 

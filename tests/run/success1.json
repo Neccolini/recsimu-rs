@@ -19,5 +19,13 @@
       "dest_id": "node2",
       "msg": "Hello, World!"
     }
-  ]
+  ],
+  "neighbors": {
+    "node1": [
+      "node2"
+    ],
+    "node2": [
+      "node1"
+    ]
+  }
 }
