@@ -261,5 +261,19 @@ mod tests {
         let _ack = hardware.receive_flit(&ack).unwrap();
         assert_eq!(hardware.retransmission_buffer.is_empty(), true);
         // assert_eq!(hardware.state.get(), State::ReplyAck);
+
+        let ack = Flit::Ack(AckFlit {
+            source_id: "source_id".to_string(),
+            dest_id: "dest_id".to_string(),
+            packet_id: 0,
+            flit_num: 0,
+            channel_id: 0,
+        });
+
+        hardware.retransmission_buffer = flit.clone();
+
+        let ack = hardware.receive_flit(&ack);
+        assert_eq!(ack.is_err(), true);
+        assert_eq!(hardware.retransmission_buffer.is_empty(), false);
     }
 }
