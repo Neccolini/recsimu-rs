@@ -1,9 +1,8 @@
 pub(crate) mod constants;
-pub mod flit;
 pub mod state;
 
-use self::flit::{AckFlit, Flit};
 use self::state::{NodeState, State};
+use crate::network::flit::{AckFlit, Flit};
 #[derive(Default)]
 pub struct Hardware {
     pub state: NodeState,

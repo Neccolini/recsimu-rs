@@ -1,5 +1,5 @@
-use crate::hardware::flit::Flit;
 use crate::hardware::state::State;
+use crate::network::flit::Flit;
 use crate::sim::node::{Node, NodeId};
 use std::collections::HashMap;
 

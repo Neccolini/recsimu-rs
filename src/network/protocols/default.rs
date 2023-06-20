@@ -1,5 +1,5 @@
 use super::packets::GeneralPacket;
-use crate::hardware::flit::{data_to_flits, NodeId};
+use crate::network::flit::{data_to_flits, NodeId};
 use crate::network::protocols::packets::DefaultPacket;
 use crate::network::ChannelId;
 use crate::network::Flit;

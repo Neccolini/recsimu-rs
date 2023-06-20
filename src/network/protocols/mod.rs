@@ -22,7 +22,7 @@ impl NetworkProtocol {
         }
     }
 
-    pub(crate) fn send_packet(&mut self) -> Option<Vec<crate::hardware::flit::Flit>> {
+    pub(crate) fn send_packet(&mut self) -> Option<Vec<crate::network::flit::Flit>> {
         match self {
             NetworkProtocol::DefaultFunction(rf) => rf.send_packet(),
         }

@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use crate::hardware::flit::Flit;
+use crate::network::flit::Flit;
 
 #[derive(Debug)]
 pub struct FlitBuffer {
@@ -32,7 +32,7 @@ impl Default for FlitBuffer {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::hardware::flit::{Flit, HeaderFlit};
+    use crate::network::flit::{Flit, HeaderFlit};
     #[test]
     fn test_flit_buffer() {
         let mut flit_buffer = FlitBuffer::new();

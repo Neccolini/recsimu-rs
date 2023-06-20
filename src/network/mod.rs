@@ -1,9 +1,10 @@
+pub mod flit;
 pub mod flit_buffer;
 pub mod protocols;
 
 use self::flit_buffer::FlitBuffer;
 use self::protocols::NetworkProtocol;
-use crate::hardware::flit::Flit;
+use crate::network::flit::Flit;
 use crate::network::protocols::packets::GeneralPacket;
 use std::collections::HashMap;
 
