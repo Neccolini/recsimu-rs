@@ -188,10 +188,11 @@ impl Hardware {
                 self.retransmission_buffer = Flit::default();
                 Ok(flit.clone())
             } else {
-                Err(
-                    "receive_ack: ack is not matched {ack_flit:?} {self.retransmission_buffer:?}"
-                        .into(),
+                Err(format!(
+                    "receive_ack: ack is not matched. {ack_flit:?} and {:?}",
+                    self.retransmission_buffer
                 )
+                .into())
             }
         } else {
             panic!("receive_ack: flit is not ack {flit:?}");
