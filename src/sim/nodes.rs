@@ -82,3 +82,37 @@ impl Nodes {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::network::protocols::packets::GeneralPacket;
+    use crate::sim::NodeType;
+    #[test]
+    fn test_run_cycle() {
+        // node1からnode2へのパケットを作成
+        let packet = GeneralPacket {
+            source_id: "node1".to_string(),
+            dest_id: "broadcast".to_string(),
+            message: "hello".to_string(),
+            packet_id: 0,
+        };
+        let mut packets = HashMap::new();
+        packets.insert(0, packet);
+
+        let mut nodes = Nodes::new(vec![
+            Node::new("node1".to_string(), NodeType::Coordinator, 1, packets),
+            Node::new("node2".to_string(), NodeType::Router, 1, HashMap::new()),
+        ]);
+
+        nodes.run_cycle(0);
+
+        // nodeの状態を見る
+        assert_eq!(*nodes.nodes[0].hardware.state.get(), State::Sending);
+        assert_eq!(*nodes.nodes[1].hardware.state.get(), State::Receiving);
+
+        nodes.run_cycle(1);
+
+        nodes.run_cycle(2);
+    }
+}
