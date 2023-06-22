@@ -5,7 +5,7 @@ pub struct GeneralPacket {
     pub message: String,
     pub dest_id: String,
     pub source_id: String,
-    pub packet_id: u32,
+    pub packet_id: String,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -26,4 +26,15 @@ impl DefaultPacket {
             packet_id,
         }
     }
+}
+
+pub fn encode_id(id: u32, from_id: &str) -> String {
+    // <from_id>_<id>
+    format!("{}_{}", from_id, id)
+}
+
+pub fn decode_id(id: &str) -> u32 {
+    // <from_id>_<id>
+    let id = id.split('_').collect::<Vec<&str>>();
+    id[1].parse::<u32>().unwrap()
 }

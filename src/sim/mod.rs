@@ -11,6 +11,7 @@ use std::{error, path::PathBuf};
 use self::node::Node;
 use self::node_type::NodeType;
 use self::nodes::Nodes;
+
 pub struct SimBuilder {
     pub path: PathBuf,
     pub verbose: bool,
@@ -38,7 +39,7 @@ impl SimBuilder {
                                 source_id: packet.src_id.clone(),
                                 dest_id: packet.dest_id.clone(),
                                 message: packet.msg.clone(),
-                                packet_id: 0,
+                                packet_id: node.node_id.clone(),
                             },
                         )
                     })

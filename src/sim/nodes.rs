@@ -115,7 +115,7 @@ mod tests {
             source_id: "node1".to_string(),
             dest_id: "broadcast".to_string(),
             message: "hello".to_string(),
-            packet_id: 0,
+            packet_id: "test_packet_id".to_string(),
         };
         let mut packets = HashMap::new();
         packets.insert(0, packet);

@@ -17,6 +17,7 @@ pub struct Node {
     pub network: Network,
     pub hardware: Hardware,
     pub packets: HashMap<CycleNum, GeneralPacket>,
+    cur_cycle: u32,
 }
 
 impl Node {
@@ -33,6 +34,7 @@ impl Node {
             network: Network::new(vc_num),
             hardware: Hardware::new(),
             packets,
+            cur_cycle: 0,
         }
     }
 
@@ -59,6 +61,8 @@ impl Node {
     }
 
     pub fn update(&mut self, cur_cycle: u32) -> Result<(), Box<dyn std::error::Error>> {
+        self.cur_cycle = cur_cycle;
+
         // packetsにcur_cycleが含まれていたら
         if let Some(packet) = self.packets.get(&cur_cycle) {
             // 新規パケットを生成
