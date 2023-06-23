@@ -65,8 +65,6 @@ impl Network {
             .unwrap()
             .push(flit.clone());
 
-        // 自分 or broadcast宛かつ最後のフリットなら
-
         if let Flit::Tail(tail_flit) = flit {
             if tail_flit.dest_id == self.routing.get_id() || tail_flit.dest_id == "broadcast" {
                 // receiving_flit_bufferのchannel_id番目のFlitBufferからtail_flit.flit_num個のフリットを取り出す
@@ -93,7 +91,6 @@ impl Network {
                     packet_id: encode_id(tail_flit.packet_id, &tail_flit.source_id),
                 };
 
-                // パケットを受信したことを通知する
                 self.routing.receive_packet(&packet);
             }
         }

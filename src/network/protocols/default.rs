@@ -108,9 +108,6 @@ impl DefaultProtocol {
         packet_id: &String,
         packet: &GeneralPacket,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        // 最初に送る場合
-        // routingする場合
-        // 自分が宛先の場合
         if packet.source_id == self.id {
             // 最初に送る場合
             let new_packet_log_info = NewPacketLogInfo {
@@ -138,7 +135,6 @@ impl DefaultProtocol {
 }
 
 #[cfg(test)]
-// send_packetのテスト
 mod tests {
     use super::*;
 
