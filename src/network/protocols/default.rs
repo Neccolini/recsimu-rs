@@ -10,7 +10,7 @@ use std::collections::{HashMap, VecDeque};
 #[derive(Clone, Debug)]
 #[allow(dead_code)]
 pub struct DefaultProtocol {
-    id: String,
+    pub(crate) id: String,
     send_packet_buffer: VecDeque<DefaultPacket>,
     received_packet_buffer: VecDeque<DefaultPacket>,
     network_joined: bool,
@@ -134,5 +134,42 @@ impl DefaultProtocol {
             update_packet_log(packet_id, &update_info)?;
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+// send_packetのテスト
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_send_packet() {
+        let mut protocol = DefaultProtocol::new(NodeType::Coordinator);
+        protocol.id = "node1".to_string();
+        protocol.network_joined = true;
+        protocol.parent_id = "node2".to_string();
+        protocol.children_id = vec!["node3".to_string(), "node4".to_string()];
+
+        let packet = GeneralPacket {
+            source_id: "node1".to_string(),
+            dest_id: "node3".to_string(),
+            message: "
+            Momoyo Koyama as Karen Aijo
+            Suzuko Mimori as Hikari Kagura
+            Haruki Iwata as Mahiru Tsuyuzaki
+            Aina Aiba as Claudine Saijo
+            Maho Tomita as Maya Tendo
+            Hinata Sato as Junna Hoshimi
+            Moeka Koizumi as Nana Daiba
+            Teru Ikuta as Futaba Isurugi
+            Ayasa Ito as Kaoruko Hanayagi
+            "
+            .to_string(),
+            packet_id: "packet1".to_string(),
+        };
+        protocol.push_new_packet(&packet);
+
+        let flits = protocol.send_packet().unwrap();
+        assert_eq!(flits.len(), 8);
     }
 }

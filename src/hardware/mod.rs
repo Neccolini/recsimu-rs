@@ -47,7 +47,7 @@ impl Hardware {
         // Data, Header Flitの場合はackを生成する
         // Ack Flitの場合はtransmission_bufferを更新する
         match flit {
-            Flit::Data(_) | Flit::Header(_) => {
+            Flit::Data(_) | Flit::Header(_) | Flit::Tail(_) => {
                 let _ack = self.ack_gen(flit)?;
                 Ok(Some(flit.clone()))
             }
@@ -132,6 +132,16 @@ impl Hardware {
                     data_flit.packet_id,
                     data_flit.flit_num,
                     data_flit.channel_id,
+                )
+            }
+            Flit::Tail(tail_flit) => {
+                let tail_flit = tail_flit.clone();
+                (
+                    tail_flit.source_id,
+                    tail_flit.dest_id,
+                    tail_flit.packet_id,
+                    tail_flit.flit_num,
+                    tail_flit.channel_id,
                 )
             }
             _ => {

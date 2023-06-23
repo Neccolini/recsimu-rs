@@ -41,14 +41,16 @@ impl Node {
     pub fn send_flit(&mut self) -> Result<Flit, Box<dyn std::error::Error>> {
         // フリットを送信する
         // ネットワーク層からフリットを受け取る
-        let flit = self.network.send_flit(0).unwrap(); // todo error handling
+        // flitがNoneならOkを返す
+        if let Some(flit) = self.network.send_flit(0) {
+            self.hardware.send_flit(&flit).map_err(|e| {
+                dbg!("error occured while sending a flit: {e:?}");
+                e
+            })?;
+            return Ok(flit);
+        }
 
-        self.hardware.send_flit(&flit).map_err(|e| {
-            dbg!("error occured while sending a flit: {e:?}");
-            e
-        })?;
-
-        Ok(flit)
+        Ok(Flit::Empty)
     }
 
     pub fn send_ack(&mut self) -> Result<Flit, Box<dyn std::error::Error>> {

@@ -28,8 +28,11 @@ impl NetworkProtocol {
         }
     }
 
-    // すべてのフリットが到達した時に呼ばれる
-    #[allow(dead_code)]
+    pub(crate) fn get_id(&self) -> String {
+        match self {
+            NetworkProtocol::DefaultFunction(rf) => rf.id.clone(),
+        }
+    }
     pub(crate) fn receive_packet(&mut self, packet: &GeneralPacket) {
         match self {
             NetworkProtocol::DefaultFunction(rf) => rf.receive_packet(packet),
