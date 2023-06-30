@@ -3,7 +3,6 @@ use crate::network::ChannelId;
 use crate::utils::div_ceil;
 use uuid::Uuid;
 
-use super::protocols::packets::{decode_id, encode_id};
 pub type PacketId = Uuid;
 pub type NodeId = String;
 
@@ -147,7 +146,7 @@ pub fn data_to_flits(
             flit_num: flit_num as u32 + 2,
             resend_num: 0,
             data: data_chunk.to_vec(),
-            packet_id: packet_id.clone(),
+            packet_id,
             channel_id,
         }));
     }
