@@ -18,7 +18,7 @@ impl Log {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct PacketLog {
     pub packet_id: String,
     pub from_id: String,
@@ -30,7 +30,7 @@ pub struct PacketLog {
     pub is_delivered: bool,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct FlitLog {
     pub received_cycle: u32,
     pub from_id: String,
@@ -114,4 +114,77 @@ pub fn update_packet_log(
 pub fn get_packet_log(packet_id: &String) -> Option<PacketLog> {
     let log = LOG.lock().unwrap();
     log.packets_info.get(packet_id).cloned()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_post_new_packet_log() {
+        let packet_info = NewPacketLogInfo {
+            packet_id: "packet_id".to_string(),
+            from_id: "from_id".to_string(),
+            dist_id: "dist_id".to_string(),
+            send_cycle: 0,
+        };
+        let packet_log = post_new_packet_log(packet_info).unwrap();
+        assert_eq!(packet_log.packet_id, "packet_id");
+        assert_eq!(packet_log.from_id, "from_id");
+        assert_eq!(packet_log.dist_id, "dist_id");
+        assert_eq!(packet_log.send_cycle, 0);
+        assert_eq!(packet_log.last_receive_cycle, None);
+        assert_eq!(packet_log.route_info, vec!["from_id"]);
+        assert_eq!(packet_log.flit_logs, Vec::<FlitLog>::new());
+        assert_eq!(packet_log.is_delivered, false);
+    }
+
+    #[test]
+    fn test_update_packet_log() {
+        let packet_info = NewPacketLogInfo {
+            packet_id: "packet_id".to_string(),
+            from_id: "from_id".to_string(),
+            dist_id: "dist_id".to_string(),
+            send_cycle: 0,
+        };
+        let packet_log = post_new_packet_log(packet_info).unwrap();
+
+        let update_packet_log_info = UpdatePacketLogInfo {
+            last_receive_cycle: Some(1),
+            route_info: Some("route_info".to_string()),
+            is_delivered: Some(true),
+            flit_log: None,
+        };
+        let packet_log =
+            update_packet_log(packet_log.packet_id.clone(), update_packet_log_info).unwrap();
+        assert_eq!(packet_log.packet_id, "packet_id");
+        assert_eq!(packet_log.from_id, "from_id");
+        assert_eq!(packet_log.dist_id, "dist_id");
+        assert_eq!(packet_log.send_cycle, 0);
+        assert_eq!(packet_log.last_receive_cycle, Some(1));
+        assert_eq!(packet_log.route_info, vec!["from_id", "route_info"]);
+        assert_eq!(packet_log.flit_logs, Vec::<FlitLog>::new());
+        assert_eq!(packet_log.is_delivered, true);
+    }
+
+    #[test]
+    fn test_get_packet_log() {
+        let packet_info = NewPacketLogInfo {
+            packet_id: "packet_id".to_string(),
+            from_id: "from_id".to_string(),
+            dist_id: "dist_id".to_string(),
+            send_cycle: 0,
+        };
+        let packet_log = post_new_packet_log(packet_info).unwrap();
+
+        let get_packet_log = get_packet_log(&packet_log.packet_id).unwrap();
+        assert_eq!(get_packet_log.packet_id, "packet_id");
+        assert_eq!(get_packet_log.from_id, "from_id");
+        assert_eq!(get_packet_log.dist_id, "dist_id");
+        assert_eq!(get_packet_log.send_cycle, 0);
+        assert_eq!(get_packet_log.last_receive_cycle, None);
+        assert_eq!(get_packet_log.route_info, vec!["from_id"]);
+        assert_eq!(get_packet_log.flit_logs, Vec::<FlitLog>::new());
+        assert_eq!(get_packet_log.is_delivered, false);
+    }
 }
