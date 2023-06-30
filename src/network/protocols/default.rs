@@ -1,9 +1,7 @@
 use super::packets::{GeneralPacket, InjectionPacket};
-use crate::log::{post_new_packet_log, update_packet_log, NewPacketLogInfo, UpdatePacketLogInfo};
-use crate::network::encode_id;
-use crate::network::flit::{data_to_flits, NodeId};
-use crate::network::protocols::packets::{decode_id, DefaultPacket};
-use crate::network::vid::{add_to_vid_table, get_pid, get_vid};
+use crate::network::flit::NodeId;
+use crate::network::protocols::packets::DefaultPacket;
+use crate::network::vid::get_pid;
 use crate::network::ChannelId;
 use crate::sim::node_type::NodeType;
 use rand::Rng;

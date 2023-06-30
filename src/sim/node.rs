@@ -32,8 +32,8 @@ impl Node {
             id: id.clone(),
             node_type: node_type.clone(),
             alive: true,
-            network: Network::new(id, vc_num, rf_kind, node_type),
-            hardware: Hardware::new(),
+            network: Network::new(id.clone(), vc_num, rf_kind, node_type),
+            hardware: Hardware::new(id),
             packets,
             cur_cycle: 0,
         }
@@ -72,7 +72,7 @@ impl Node {
             self.network.send_new_packet(packet);
         }
 
-        self.network.update();
+        self.network.update(cur_cycle);
 
         // retransmission_bufferが空なら
         if self.hardware.retransmission_buffer.is_empty() {

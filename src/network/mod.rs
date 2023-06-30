@@ -5,9 +5,12 @@ pub mod vid;
 
 use self::flit::{data_to_flits, flits_to_data};
 use self::flit_buffer::FlitBuffer;
-use self::protocols::packets::{encode_id, InjectionPacket};
+use self::protocols::packets::InjectionPacket;
 use self::protocols::NetworkProtocol;
 use self::vid::*;
+use crate::log::{
+    get_packet_log, post_new_packet_log, update_packet_log, NewPacketLogInfo, UpdatePacketLogInfo,
+};
 use crate::network::flit::Flit;
 use crate::network::protocols::packets::GeneralPacket;
 use crate::sim::node_type::NodeType;
@@ -16,6 +19,8 @@ use std::collections::HashMap;
 pub type ChannelId = u32;
 
 pub struct Network {
+    id: String,
+    cur_cycle: u32,
     pub routing: NetworkProtocol,
     pub sending_flit_buffer: HashMap<ChannelId, FlitBuffer>,
     pub receiving_flit_buffer: HashMap<ChannelId, FlitBuffer>,
@@ -35,9 +40,11 @@ impl Network {
         let routing = NetworkProtocol::new(rf_kind, node_type);
         let vid = routing.get_id();
 
-        add_to_vid_table(vid, id);
+        add_to_vid_table(vid, id.clone());
 
         Self {
+            id,
+            cur_cycle: 0,
             routing,
             sending_flit_buffer,
             receiving_flit_buffer,
@@ -49,18 +56,21 @@ impl Network {
         self.sending_flit_buffer.get_mut(&channel_id).unwrap().pop()
     }
 
-    pub fn update(&mut self) {
+    pub fn update(&mut self, cur_cycle: u32) {
+        self.cur_cycle = cur_cycle;
         // 送信待ちのパケットを取りに行く
         if let Some(packet) = self.routing.send_packet() {
             // packetをフリットに変換する
             let flits = data_to_flits(
-                packet.data,
-                packet.source_id,
-                packet.dest_id,
-                packet.next_id,
+                packet.data.clone(),
+                packet.source_id.clone(),
+                packet.dest_id.clone(),
+                packet.next_id.clone(),
                 packet.packet_id,
                 packet.channel_id,
             );
+            self.log_handler(&packet);
+
             // 送信待ちのパケットがあったら
             // sending_flit_bufferのchannel_id番目のFlitBufferにpushする
             for flit in flits {
@@ -109,12 +119,38 @@ impl Network {
                 };
 
                 self.routing.receive_packet(&packet);
+
+                self.log_handler(&packet);
             }
         }
     }
 
     pub fn send_new_packet(&mut self, packet: &InjectionPacket) {
         self.routing.push_new_packet(packet);
+    }
+}
+
+impl Network {
+    fn log_handler(&self, packet: &GeneralPacket) {
+        let packet_id = self.id.clone() + "_" + &packet.packet_id.to_string();
+        if get_packet_log(&packet_id).is_none() {
+            let log = NewPacketLogInfo {
+                packet_id,
+                from_id: packet.source_id.clone(),
+                dist_id: packet.dest_id.clone(),
+                send_cycle: self.cur_cycle,
+            };
+            let _ = post_new_packet_log(log);
+        } else {
+            let update_log = UpdatePacketLogInfo {
+                last_receive_cycle: Some(self.cur_cycle),
+                route_info: Some(self.id.clone()),
+                is_delivered: Some(true),
+                flit_log: None,
+            };
+
+            let _ = update_packet_log(packet_id, update_log);
+        }
     }
 }
 
@@ -138,7 +174,7 @@ mod tests {
             source_id: "test".to_string(),
         };
         network.send_new_packet(&packet);
-        network.update();
+        network.update(0);
         let flit = network.send_flit(0).unwrap();
 
         assert_eq!(
