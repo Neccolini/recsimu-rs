@@ -118,34 +118,4 @@ impl DefaultProtocol {
     fn channel_id(&self, dest_id: &NodeId) -> ChannelId {
         0
     }
-    /*
-    fn log_handler(
-        &self,
-        packet_id: &String,
-        packet: &GeneralPacket,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        if packet.source_id == self.id {
-            // 最初に送る場合
-            let new_packet_log_info = NewPacketLogInfo {
-                packet_id: packet_id.clone(),
-                from_id: self.id.clone(),
-                dist_id: packet.dest_id.clone(),
-                flit_num: 0,   // todo
-                send_cycle: 0, // todo
-            };
-
-            post_new_packet_log(new_packet_log_info)?;
-        } else if packet.dest_id == self.id {
-            // 自分が宛先の場合
-            let update_info = UpdatePacketLogInfo {
-                last_receive_cycle: None, // todo
-                route_info: Some(self.id.clone()),
-                is_delivered: Some(true),
-                flit_log: None,
-            };
-            update_packet_log(packet_id, &update_info)?;
-        }
-        Ok(())
-    }
-    */
 }
