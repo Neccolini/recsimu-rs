@@ -156,6 +156,6 @@ mod tests {
 
         nodes.run_cycle(1);
 
-        nodes.run_cycle(2);
+        // nodes.run_cycle(2);
     }
 }

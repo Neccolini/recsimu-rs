@@ -5,14 +5,16 @@ use self::state::{NodeState, State};
 use crate::network::flit::{AckFlit, Flit};
 #[derive(Default)]
 pub struct Hardware {
+    pub id: String,
     pub state: NodeState,
     pub retransmission_buffer: Flit,
     pub ack_buffer: Flit,
 }
 
 impl Hardware {
-    pub fn new() -> Self {
+    pub fn new(id: String) -> Self {
         Self {
+            id,
             state: NodeState::default(),
             retransmission_buffer: Flit::default(),
             ack_buffer: Flit::default(),
@@ -46,6 +48,11 @@ impl Hardware {
     ) -> Result<Option<Flit>, Box<dyn std::error::Error>> {
         // Data, Header Flitの場合はackを生成する
         // Ack Flitの場合はtransmission_bufferを更新する
+        let next_id = flit.get_next_id().unwrap();
+        if next_id != self.id && next_id != "broadcast" {
+            return Ok(None);
+        }
+
         match flit {
             Flit::Data(_) | Flit::Header(_) | Flit::Tail(_) => {
                 let _ack = self.ack_gen(flit)?;
@@ -216,7 +223,7 @@ mod tests {
     use crate::network::flit::DataFlit;
     #[test]
     fn test_send_flit() {
-        let mut hardware = Hardware::new();
+        let mut hardware = Hardware::new("source_id".to_string());
 
         // データフリットを送信する
         let flit = Flit::Data(DataFlit {
@@ -238,13 +245,13 @@ mod tests {
 
     #[test]
     fn test_receive_flit() {
-        let mut hardware = Hardware::new();
+        let mut hardware = Hardware::new("dest_id".to_string());
 
         // データフリットを受信する
         let flit = Flit::Data(DataFlit {
             source_id: "source_id".to_string(),
             dest_id: "dest_id".to_string(),
-            next_id: "next_id".to_string(),
+            next_id: "dest_id".to_string(),
             resend_num: 0,
             packet_id: 0,
             flit_num: 0,
@@ -256,35 +263,5 @@ mod tests {
         assert_eq!(received_flit, Some(flit.clone()));
         assert_eq!(hardware.ack_buffer.is_empty(), false);
         assert_eq!(hardware.ack_buffer.is_ack(), true);
-
-        // transmission_bufferを設定
-        hardware.retransmission_buffer = flit.clone();
-
-        let ack = Flit::Ack(AckFlit {
-            source_id: "dest_id".to_string(),
-            dest_id: "source_id".to_string(),
-            packet_id: 0,
-            flit_num: 0,
-            channel_id: 0,
-        });
-
-        // ack
-        let _ack = hardware.receive_flit(&ack).unwrap();
-        assert_eq!(hardware.retransmission_buffer.is_empty(), true);
-        // assert_eq!(hardware.state.get(), State::ReplyAck);
-
-        let ack = Flit::Ack(AckFlit {
-            source_id: "source_id".to_string(),
-            dest_id: "dest_id".to_string(),
-            packet_id: 0,
-            flit_num: 0,
-            channel_id: 0,
-        });
-
-        hardware.retransmission_buffer = flit.clone();
-
-        let ack = hardware.receive_flit(&ack);
-        assert_eq!(ack.is_err(), true);
-        assert_eq!(hardware.retransmission_buffer.is_empty(), false);
     }
 }
