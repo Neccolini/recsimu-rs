@@ -1,13 +1,16 @@
 pub mod flit;
 pub mod flit_buffer;
 pub mod protocols;
+pub mod vid;
 
-use self::flit::flits_to_data;
+use self::flit::{data_to_flits, flits_to_data};
 use self::flit_buffer::FlitBuffer;
-use self::protocols::packets::encode_id;
+use self::protocols::packets::{encode_id, InjectionPacket};
 use self::protocols::NetworkProtocol;
+use self::vid::*;
 use crate::network::flit::Flit;
 use crate::network::protocols::packets::GeneralPacket;
+use crate::sim::node_type::NodeType;
 use std::collections::HashMap;
 
 pub type ChannelId = u32;
@@ -19,7 +22,7 @@ pub struct Network {
 }
 
 impl Network {
-    pub fn new(vc_num: ChannelId) -> Self {
+    pub fn new(id: String, vc_num: ChannelId, rf_kind: String, node_type: NodeType) -> Self {
         // sending_flit_bufferとreceiving_flit_bufferを初期化する
         // 0...vc_num-1のchannel_idを持つFlitBufferを生成する
         let mut sending_flit_buffer = HashMap::new();
@@ -29,9 +32,13 @@ impl Network {
             sending_flit_buffer.insert(i, FlitBuffer::new());
             receiving_flit_buffer.insert(i, FlitBuffer::new());
         }
+        let routing = NetworkProtocol::new(rf_kind, node_type);
+        let vid = routing.get_id();
+
+        add_to_vid_table(vid, id);
 
         Self {
-            routing: NetworkProtocol::default(),
+            routing,
             sending_flit_buffer,
             receiving_flit_buffer,
         }
@@ -44,7 +51,16 @@ impl Network {
 
     pub fn update(&mut self) {
         // 送信待ちのパケットを取りに行く
-        if let Some(flits) = self.routing.send_packet() {
+        if let Some(packet) = self.routing.send_packet() {
+            // packetをフリットに変換する
+            let flits = data_to_flits(
+                packet.data,
+                packet.source_id,
+                packet.dest_id,
+                packet.next_id,
+                packet.packet_id,
+                packet.channel_id,
+            );
             // 送信待ちのパケットがあったら
             // sending_flit_bufferのchannel_id番目のFlitBufferにpushする
             for flit in flits {
@@ -66,7 +82,9 @@ impl Network {
             .push(flit.clone());
 
         if let Flit::Tail(tail_flit) = flit {
-            if tail_flit.dest_id == self.routing.get_id() || tail_flit.dest_id == "broadcast" {
+            if tail_flit.dest_id == "broadcast"
+                || get_vid(tail_flit.dest_id.clone()).unwrap() == self.routing.get_id()
+            {
                 // receiving_flit_bufferのchannel_id番目のFlitBufferからtail_flit.flit_num個のフリットを取り出す
                 let mut flits = Vec::new();
                 for _ in 1..tail_flit.flit_num {
@@ -78,17 +96,16 @@ impl Network {
                             .unwrap(),
                     );
                 }
-                // パケットをデコードする
+
                 let data = flits_to_data(&flits);
 
-                // dataを文字列にデコードする
-                let message = String::from_utf8(data).unwrap(); // todo エラー処理
-
                 let packet = GeneralPacket {
-                    message,
+                    data,
                     source_id: tail_flit.source_id.clone(),
                     dest_id: tail_flit.dest_id.clone(),
-                    packet_id: encode_id(tail_flit.packet_id, &tail_flit.source_id),
+                    next_id: tail_flit.next_id.clone(),
+                    packet_id: tail_flit.packet_id,
+                    channel_id: tail_flit.channel_id,
                 };
 
                 self.routing.receive_packet(&packet);
@@ -96,25 +113,29 @@ impl Network {
         }
     }
 
-    pub fn send_new_packet(&mut self, packet: &GeneralPacket) {
+    pub fn send_new_packet(&mut self, packet: &InjectionPacket) {
         self.routing.push_new_packet(packet);
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::network::flit::{HeaderFlit, TailFlit};
-
     use super::*;
+    use crate::network::flit::{DataFlit, HeaderFlit};
+    use crate::network::protocols::packets::InjectionPacket;
 
     #[test]
     fn test_send_flit() {
-        let mut network = Network::new(1);
-        let packet = GeneralPacket {
-            message: "".to_string(),
-            source_id: "test".to_string(),
+        let mut network = Network::new(
+            "test".to_string(),
+            1,
+            "default".to_string(),
+            NodeType::Router,
+        );
+        let packet = InjectionPacket {
+            message: "hello world".to_string(),
             dest_id: "broadcast".to_string(),
-            packet_id: "test_0".to_string(),
+            source_id: "test".to_string(),
         };
         network.send_new_packet(&packet);
         network.update();
@@ -127,20 +148,22 @@ mod tests {
                 dest_id: "broadcast".to_string(),
                 packet_id: 0,
                 next_id: "broadcast".to_string(),
-                flits_len: 2,
+                flits_len: 3,
                 channel_id: 0,
             })
         );
         let flit = network.send_flit(0).unwrap();
         assert_eq!(
             flit,
-            Flit::Tail(TailFlit {
+            Flit::Data(DataFlit {
                 source_id: "test".to_string(),
                 dest_id: "broadcast".to_string(),
                 next_id: "broadcast".to_string(),
                 data: vec![
-                    0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 98, 114, 111, 97, 100, 99, 97,
-                    115, 116, 4, 0, 0, 0, 0, 0, 0, 0, 116, 101, 115, 116, 0, 0, 0, 0
+                    11, 0, 0, 0, 0, 0, 0, 0, 104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100,
+                    9, 0, 0, 0, 0, 0, 0, 0, 98, 114, 111, 97, 100, 99, 97, 115, 116, 9, 0, 0, 0, 0,
+                    0, 0, 0, 98, 114, 111, 97, 100, 99, 97, 115, 116, 4, 0, 0, 0, 0, 0, 0, 0, 116,
+                    101, 115
                 ],
                 resend_num: 0,
                 packet_id: 0,

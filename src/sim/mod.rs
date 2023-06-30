@@ -4,7 +4,7 @@ pub mod nodes;
 
 use crate::file::InputFile;
 use crate::log::Log;
-use crate::network::protocols::packets::GeneralPacket;
+use crate::network::protocols::packets::InjectionPacket;
 use std::collections::HashMap;
 use std::{error, path::PathBuf};
 
@@ -35,20 +35,20 @@ impl SimBuilder {
                     .map(|packet| {
                         (
                             packet.cycle_num,
-                            GeneralPacket {
+                            InjectionPacket {
                                 source_id: packet.src_id.clone(),
                                 dest_id: packet.dest_id.clone(),
                                 message: packet.msg.clone(),
-                                packet_id: node.node_id.clone(),
                             },
                         )
                     })
-                    .collect::<HashMap<u32, GeneralPacket>>();
+                    .collect::<HashMap<u32, InjectionPacket>>();
 
                 Node::new(
                     node.node_id.clone(),
-                    NodeType::new(&node.node_type),
                     input.channel_num,
+                    "default".to_string(),
+                    NodeType::new(&node.node_type),
                     packets,
                 )
             })

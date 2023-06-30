@@ -3,7 +3,7 @@ pub mod packets;
 
 use crate::{network::protocols::default::DefaultProtocol, sim::node_type::NodeType};
 
-use self::packets::GeneralPacket;
+use self::packets::{GeneralPacket, InjectionPacket};
 
 pub enum NetworkProtocol {
     DefaultFunction(DefaultProtocol),
@@ -16,21 +16,21 @@ impl NetworkProtocol {
             _ => NetworkProtocol::DefaultFunction(DefaultProtocol::new(node_type)),
         }
     }
-    pub(crate) fn push_new_packet(&mut self, packet: &GeneralPacket) {
+    pub(crate) fn push_new_packet(&mut self, packet: &InjectionPacket) {
         match self {
             NetworkProtocol::DefaultFunction(rf) => rf.push_new_packet(packet),
         }
     }
 
-    pub(crate) fn send_packet(&mut self) -> Option<Vec<crate::network::flit::Flit>> {
+    pub(crate) fn send_packet(&mut self) -> Option<GeneralPacket> {
         match self {
             NetworkProtocol::DefaultFunction(rf) => rf.send_packet(),
         }
     }
 
-    pub(crate) fn get_id(&self) -> String {
+    pub(crate) fn get_id(&self) -> u32 {
         match self {
-            NetworkProtocol::DefaultFunction(rf) => rf.id.clone(),
+            NetworkProtocol::DefaultFunction(rf) => rf.id,
         }
     }
     pub(crate) fn receive_packet(&mut self, packet: &GeneralPacket) {

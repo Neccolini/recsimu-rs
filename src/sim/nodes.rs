@@ -46,6 +46,7 @@ impl Nodes {
                                 buffer.push(flit.clone());
                             });
                         } else if let Some(neighbor_list) = self.neighbors.get(&node.id) {
+                            dbg!(neighbor_list, &receiver_id);
                             if neighbor_list.contains(&receiver_id) {
                                 let buffer = self
                                     .flit_buffers
@@ -67,21 +68,24 @@ impl Nodes {
                 _ => {}
             }
         }
-        dbg!("flit_buffers: {:?}", &self.flit_buffers);
+        dbg!(self.nodes.len());
         // バッファにあるメッセージを受信
         for node in self.nodes.iter_mut() {
             // todo nodeに切り出す
             let flits = self.flit_buffers.get(&node.id);
+            dbg!(flits);
+            dbg!(&self.flit_buffers, &node.id);
             if flits.is_none() {
                 continue;
             }
             let flits = flits.unwrap();
-
+            dbg!(flits.len());
             // 衝突がなければ受信
             if flits.len() == 1 {
                 let flit = &flits[0];
 
                 if let State::Idle | State::Waiting(_) = node.hardware.state.get() {
+                    dbg!("receive flit: {:?}", flit);
                     // 状態を受信中に変更
                     let _ = node.receive_flit(flit);
                 }
@@ -106,18 +110,18 @@ impl Nodes {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::network::protocols::packets::GeneralPacket;
+    use crate::network::protocols::packets::InjectionPacket;
     use crate::sim::NodeType;
+
     #[test]
     fn test_run_cycle() {
         // node1からnode2へのパケットを作成
-        let packet = GeneralPacket {
+        let mut packets: HashMap<u32, InjectionPacket> = HashMap::new();
+        let packet = InjectionPacket {
+            message: "test".to_string(),
             source_id: "node1".to_string(),
             dest_id: "broadcast".to_string(),
-            message: "hello".to_string(),
-            packet_id: "test_packet_id".to_string(),
         };
-        let mut packets = HashMap::new();
         packets.insert(0, packet);
 
         let mut neighbors = HashMap::new();
@@ -126,8 +130,20 @@ mod tests {
 
         let mut nodes = Nodes::new(
             vec![
-                Node::new("node1".to_string(), NodeType::Coordinator, 1, packets),
-                Node::new("node2".to_string(), NodeType::Router, 1, HashMap::new()),
+                Node::new(
+                    "node1".to_string(),
+                    1,
+                    "default".to_string(),
+                    NodeType::Coordinator,
+                    packets,
+                ),
+                Node::new(
+                    "node2".to_string(),
+                    1,
+                    "default".to_string(),
+                    NodeType::Router,
+                    HashMap::new(),
+                ),
             ],
             neighbors,
         );

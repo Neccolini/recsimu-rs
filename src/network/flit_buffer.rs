@@ -49,7 +49,7 @@ mod tests {
 
         let flit1 = Flit::Header(HeaderFlit {
             channel_id: 0,
-            packet_id: 1,
+            packet_id: 0,
             dest_id: "".to_string(),
             source_id: "".to_string(),
             next_id: "".to_string(),
@@ -59,7 +59,7 @@ mod tests {
 
         let flit2 = Flit::Header(HeaderFlit {
             channel_id: 0,
-            packet_id: 2,
+            packet_id: 0,
             dest_id: "".to_string(),
             source_id: "".to_string(),
             next_id: "".to_string(),
