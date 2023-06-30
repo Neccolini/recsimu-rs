@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::hardware::state::State;
 use crate::hardware::Hardware;
 use crate::network::flit::Flit;
-use crate::network::protocols::packets::GeneralPacket;
+use crate::network::protocols::packets::InjectionPacket;
 use crate::network::Network;
 use crate::sim::node_type::NodeType;
 
@@ -16,22 +16,23 @@ pub struct Node {
     pub alive: bool,
     pub network: Network,
     pub hardware: Hardware,
-    pub packets: HashMap<CycleNum, GeneralPacket>,
+    pub packets: HashMap<CycleNum, InjectionPacket>,
     cur_cycle: u32,
 }
 
 impl Node {
     pub fn new(
         id: String,
-        node_type: NodeType,
         vc_num: u32,
-        packets: HashMap<CycleNum, GeneralPacket>,
+        rf_kind: String,
+        node_type: NodeType,
+        packets: HashMap<CycleNum, InjectionPacket>,
     ) -> Self {
         Self {
-            id,
-            node_type,
+            id: id.clone(),
+            node_type: node_type.clone(),
             alive: true,
-            network: Network::new(vc_num),
+            network: Network::new(id, vc_num, rf_kind, node_type),
             hardware: Hardware::new(),
             packets,
             cur_cycle: 0,

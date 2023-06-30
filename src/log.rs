@@ -23,7 +23,6 @@ pub struct PacketLog {
     pub packet_id: String,
     pub from_id: String,
     pub dist_id: String,
-    pub message: String,
     pub flit_num: u32,
     pub send_cycle: u32,
     pub last_receive_cycle: Option<u32>,
@@ -43,7 +42,6 @@ pub struct NewPacketLogInfo {
     pub packet_id: String,
     pub from_id: String,
     pub dist_id: String,
-    pub message: String,
     pub flit_num: u32,
     pub send_cycle: u32,
 }
@@ -56,7 +54,6 @@ pub fn post_new_packet_log(
         packet_id: packet_info.packet_id,
         from_id: packet_info.from_id.clone(),
         dist_id: packet_info.dist_id,
-        message: packet_info.message,
         flit_num: packet_info.flit_num,
         send_cycle: packet_info.send_cycle,
         last_receive_cycle: None,

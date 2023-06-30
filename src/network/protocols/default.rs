@@ -1,16 +1,18 @@
-use super::packets::GeneralPacket;
+use super::packets::{GeneralPacket, InjectionPacket};
 use crate::log::{post_new_packet_log, update_packet_log, NewPacketLogInfo, UpdatePacketLogInfo};
+use crate::network::encode_id;
 use crate::network::flit::{data_to_flits, NodeId};
 use crate::network::protocols::packets::{decode_id, DefaultPacket};
+use crate::network::vid::{add_to_vid_table, get_pid, get_vid};
 use crate::network::ChannelId;
-use crate::network::Flit;
 use crate::sim::node_type::NodeType;
+use rand::Rng;
 use std::collections::{HashMap, VecDeque};
 
 #[derive(Clone, Debug)]
 #[allow(dead_code)]
 pub struct DefaultProtocol {
-    pub(crate) id: String,
+    pub(crate) id: u32,
     send_packet_buffer: VecDeque<DefaultPacket>,
     received_packet_buffer: VecDeque<DefaultPacket>,
     network_joined: bool,
@@ -24,12 +26,17 @@ pub struct DefaultProtocol {
 impl DefaultProtocol {
     pub fn new(node_type: NodeType) -> Self {
         let mut network_joined = false;
+        let mut id = 0;
         if let NodeType::Coordinator = node_type {
             network_joined = true;
+        } else {
+            // idはランダムな整数
+            let mut rng = rand::thread_rng();
+            id = rng.gen();
         }
 
         DefaultProtocol {
-            id: "".to_string(),
+            id,
             send_packet_buffer: VecDeque::new(),
             received_packet_buffer: VecDeque::new(),
             network_joined,
@@ -45,13 +52,24 @@ impl DefaultProtocol {
         self.network_joined
     }
 
-    pub fn push_new_packet(&mut self, packet: &GeneralPacket) {
-        self.send_packet_buffer
-            .push_back(DefaultPacket::new(packet, self.packet_num_cnt));
+    pub fn push_new_packet(&mut self, packet: &InjectionPacket) {
+        let channel_id = self.channel_id(&packet.dest_id);
+        let pid = get_pid(self.id).unwrap();
+
+        let default_packet = DefaultPacket {
+            message: packet.message.clone(),
+            packet_id: self.packet_num_cnt,
+            dest_id: packet.dest_id.clone(),
+            source_id: pid,
+            channel_id,
+            next_id: self.next_node_id(&packet.dest_id, &channel_id),
+        };
+
+        self.send_packet_buffer.push_back(default_packet);
         self.packet_num_cnt += 1;
     }
 
-    pub fn send_packet(&mut self) -> Option<Vec<Flit>> {
+    pub fn send_packet(&mut self) -> Option<GeneralPacket> {
         if let Some(packet) = self.send_packet_buffer.pop_front() {
             let data = bincode::serialize(&packet)
                 .map_err(|e| {
@@ -59,26 +77,22 @@ impl DefaultProtocol {
                 })
                 .unwrap();
 
-            let channel_id = self.channel_id(&packet.dest_id);
-            let next_id = self.next_node_id(&packet.dest_id, &channel_id);
-            let flits = data_to_flits(
+            let pid = get_pid(self.id).unwrap();
+
+            return Some(GeneralPacket {
                 data,
-                packet.source_id,
-                packet.dest_id,
-                next_id,
-                packet.packet_id,
-                channel_id,
-            );
-            return Some(flits);
+                packet_id: packet.packet_id,
+                dest_id: packet.dest_id.clone(),
+                source_id: pid,
+                next_id: self.next_node_id(&packet.dest_id, &packet.channel_id),
+                channel_id: self.channel_id(&packet.dest_id),
+            });
         }
         None
     }
 
     pub fn receive_packet(&mut self, packet: &GeneralPacket) {
-        // Logの処理
-        let _ = self.log_handler(&packet.packet_id, packet);
-
-        let packet = DefaultPacket::new(packet, decode_id(&packet.packet_id));
+        let packet = DefaultPacket::from_general(packet);
         self.received_packet_buffer.push_back(packet);
     }
 }
@@ -94,6 +108,10 @@ impl DefaultProtocol {
         if dest_id == "broadcast" {
             return "broadcast".to_string();
         }
+        if self.parent_id.is_empty() {
+            panic!("parent_id is not set");
+        }
+
         self.parent_id.clone()
     }
 
@@ -102,7 +120,7 @@ impl DefaultProtocol {
     fn channel_id(&self, dest_id: &NodeId) -> ChannelId {
         0
     }
-
+    /*
     fn log_handler(
         &self,
         packet_id: &String,
@@ -114,7 +132,6 @@ impl DefaultProtocol {
                 packet_id: packet_id.clone(),
                 from_id: self.id.clone(),
                 dist_id: packet.dest_id.clone(),
-                message: packet.message.clone(),
                 flit_num: 0,   // todo
                 send_cycle: 0, // todo
             };
@@ -132,40 +149,5 @@ impl DefaultProtocol {
         }
         Ok(())
     }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_send_packet() {
-        let mut protocol = DefaultProtocol::new(NodeType::Coordinator);
-        protocol.id = "node1".to_string();
-        protocol.network_joined = true;
-        protocol.parent_id = "node2".to_string();
-        protocol.children_id = vec!["node3".to_string(), "node4".to_string()];
-
-        let packet = GeneralPacket {
-            source_id: "node1".to_string(),
-            dest_id: "node3".to_string(),
-            message: "
-            Momoyo Koyama as Karen Aijo
-            Suzuko Mimori as Hikari Kagura
-            Haruki Iwata as Mahiru Tsuyuzaki
-            Aina Aiba as Claudine Saijo
-            Maho Tomita as Maya Tendo
-            Hinata Sato as Junna Hoshimi
-            Moeka Koizumi as Nana Daiba
-            Teru Ikuta as Futaba Isurugi
-            Ayasa Ito as Kaoruko Hanayagi
-            "
-            .to_string(),
-            packet_id: "packet1".to_string(),
-        };
-        protocol.push_new_packet(&packet);
-
-        let flits = protocol.send_packet().unwrap();
-        assert_eq!(flits.len(), 8);
-    }
+    */
 }
