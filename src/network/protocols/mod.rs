@@ -16,6 +16,13 @@ impl NetworkProtocol {
             _ => NetworkProtocol::DefaultFunction(DefaultProtocol::new(node_type)),
         }
     }
+
+    pub(crate) fn update(&mut self) {
+        match self {
+            NetworkProtocol::DefaultFunction(rf) => rf.update(),
+        }
+    }
+
     pub(crate) fn push_new_packet(&mut self, packet: &InjectionPacket) {
         match self {
             NetworkProtocol::DefaultFunction(rf) => rf.push_new_packet(packet),
@@ -28,14 +35,15 @@ impl NetworkProtocol {
         }
     }
 
-    pub(crate) fn get_id(&self) -> u32 {
-        match self {
-            NetworkProtocol::DefaultFunction(rf) => rf.id,
-        }
-    }
     pub(crate) fn receive_packet(&mut self, packet: &GeneralPacket) {
         match self {
             NetworkProtocol::DefaultFunction(rf) => rf.receive_packet(packet),
+        }
+    }
+
+    pub(crate) fn get_id(&self) -> u32 {
+        match self {
+            NetworkProtocol::DefaultFunction(rf) => rf.id,
         }
     }
 }

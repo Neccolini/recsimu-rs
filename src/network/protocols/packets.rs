@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 pub struct GeneralPacket {
     pub data: Vec<u8>,
     pub dest_id: String,
+    pub prev_id: String,
     pub next_id: String,
     pub source_id: String,
     pub packet_id: u32,
@@ -21,9 +22,10 @@ pub struct InjectionPacket {
 #[allow(dead_code)]
 pub(crate) struct DefaultPacket {
     pub(crate) message: String,
-    pub(crate) dest_id: String,
-    pub(crate) next_id: String,
-    pub(crate) source_id: String,
+    pub(crate) dest_id: u32,
+    pub(crate) prev_id: u32,
+    pub(crate) next_id: u32,
+    pub(crate) source_id: u32,
     pub(crate) packet_id: u32,
     pub(crate) channel_id: u32,
 }

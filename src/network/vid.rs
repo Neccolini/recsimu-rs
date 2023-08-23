@@ -4,6 +4,8 @@ use std::sync::Mutex;
 
 static VID_TABLE: Lazy<Mutex<VIDTable>> = Lazy::new(|| Mutex::new(VIDTable::new()));
 
+// broadcastのvidはu32::MAX，事前にVID_TABLEに登録しておく
+
 #[derive(Debug, Default)]
 struct VIDTable {
     v_to_p: HashMap<u32, String>,
@@ -31,8 +33,14 @@ pub fn remove_from_vid_table(vid: u32, pid: String) {
     table.p_to_v.remove(&pid);
 }
 
+pub fn update_vid_table(vid: u32, pid: String) {
+    remove_from_vid_table(vid, pid.clone());
+    add_to_vid_table(vid, pid);
+}
+
 pub fn get_vid(pid: String) -> Option<u32> {
     let table = VID_TABLE.lock().unwrap();
+    println!("{:?}", table);
     table.p_to_v.get(&pid).cloned()
 }
 

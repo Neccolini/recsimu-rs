@@ -64,6 +64,7 @@ pub struct HeaderFlit {
     pub source_id: NodeId,
     pub dest_id: NodeId,
     pub next_id: NodeId,
+    pub prev_id: NodeId,
     pub packet_id: u32,
     pub flits_len: u32,
     pub channel_id: ChannelId,
@@ -74,6 +75,7 @@ pub struct TailFlit {
     pub source_id: NodeId,
     pub dest_id: NodeId,
     pub next_id: NodeId,
+    pub prev_id: NodeId,
     pub flit_num: u32,
     pub resend_num: u8,
     pub data: Vec<u8>,
@@ -86,6 +88,7 @@ pub struct DataFlit {
     pub source_id: NodeId,
     pub dest_id: NodeId,
     pub next_id: NodeId,
+    pub prev_id: NodeId,
     pub flit_num: u32,
     pub resend_num: u8,
     pub data: Vec<u8>,
@@ -107,6 +110,7 @@ pub fn data_to_flits(
     source_id: NodeId,
     dest_id: NodeId,
     next_id: NodeId,
+    prev_id: NodeId,
     packet_id: u32,
     channel_id: ChannelId,
 ) -> Vec<Flit> {
@@ -118,6 +122,7 @@ pub fn data_to_flits(
         source_id: source_id.clone(),
         dest_id: dest_id.clone(),
         next_id: next_id.clone(),
+        prev_id: prev_id.clone(),
         packet_id,
         flits_len,
         channel_id,
@@ -131,6 +136,7 @@ pub fn data_to_flits(
                 source_id,
                 dest_id,
                 next_id,
+                prev_id,
                 flit_num: flit_num as u32 + 2,
                 resend_num: 0,
                 data: data_chunk.to_vec(),
@@ -143,6 +149,7 @@ pub fn data_to_flits(
             source_id: source_id.clone(),
             dest_id: dest_id.clone(),
             next_id: next_id.clone(),
+            prev_id: prev_id.clone(),
             flit_num: flit_num as u32 + 2,
             resend_num: 0,
             data: data_chunk.to_vec(),
@@ -174,6 +181,7 @@ mod tests {
         let source_id = "source".to_string();
         let dest_id = "dest".to_string();
         let next_id = "next".to_string();
+        let prev_id = next_id.clone();
         let packet_id = 0;
         let channel_id = 0;
         let flits = data_to_flits(
@@ -181,6 +189,7 @@ mod tests {
             source_id.clone(),
             dest_id.clone(),
             next_id.clone(),
+            prev_id.clone(),
             packet_id,
             channel_id,
         );
@@ -208,6 +217,7 @@ mod tests {
         let source_id = "source".to_string();
         let dest_id = "dest".to_string();
         let next_id = "next".to_string();
+        let prev_id = next_id.clone();
         let packet_id = 0;
         let channel_id = 0;
         let flits = data_to_flits(
@@ -215,6 +225,7 @@ mod tests {
             source_id.clone(),
             dest_id.clone(),
             next_id.clone(),
+            prev_id.clone(),
             packet_id,
             channel_id,
         );
