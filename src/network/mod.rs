@@ -58,6 +58,9 @@ impl Network {
 
     pub fn update(&mut self, cur_cycle: u32) {
         self.cur_cycle = cur_cycle;
+
+        self.routing.update();
+
         // 送信待ちのパケットを取りに行く
         if let Some(packet) = self.routing.send_packet() {
             // packetをフリットに変換する
@@ -66,6 +69,7 @@ impl Network {
                 packet.source_id.clone(),
                 packet.dest_id.clone(),
                 packet.next_id.clone(),
+                packet.prev_id.clone(),
                 packet.packet_id,
                 packet.channel_id,
             );
@@ -114,6 +118,7 @@ impl Network {
                     source_id: tail_flit.source_id.clone(),
                     dest_id: tail_flit.dest_id.clone(),
                     next_id: tail_flit.next_id.clone(),
+                    prev_id: tail_flit.prev_id.clone(),
                     packet_id: tail_flit.packet_id,
                     channel_id: tail_flit.channel_id,
                 };
@@ -157,11 +162,12 @@ impl Network {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::network::flit::{DataFlit, HeaderFlit};
+    use crate::network::flit::HeaderFlit;
     use crate::network::protocols::packets::InjectionPacket;
 
     #[test]
     fn test_send_flit() {
+        add_to_vid_table(u32::MAX, "broadcast".to_string());
         let mut network = Network::new(
             "test".to_string(),
             1,
@@ -184,28 +190,22 @@ mod tests {
                 dest_id: "broadcast".to_string(),
                 packet_id: 0,
                 next_id: "broadcast".to_string(),
-                flits_len: 3,
+                prev_id: "test".to_string(),
+                flits_len: 2,
                 channel_id: 0,
             })
         );
         let flit = network.send_flit(0).unwrap();
-        assert_eq!(
-            flit,
-            Flit::Data(DataFlit {
-                source_id: "test".to_string(),
-                dest_id: "broadcast".to_string(),
-                next_id: "broadcast".to_string(),
-                data: vec![
-                    11, 0, 0, 0, 0, 0, 0, 0, 104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100,
-                    9, 0, 0, 0, 0, 0, 0, 0, 98, 114, 111, 97, 100, 99, 97, 115, 116, 9, 0, 0, 0, 0,
-                    0, 0, 0, 98, 114, 111, 97, 100, 99, 97, 115, 116, 4, 0, 0, 0, 0, 0, 0, 0, 116,
-                    101, 115
-                ],
-                resend_num: 0,
-                packet_id: 0,
-                flit_num: 2,
-                channel_id: 0,
-            })
-        );
+        match flit {
+            Flit::Tail(tail_flit) => {
+                assert_eq!(tail_flit.dest_id, "broadcast".to_string());
+                assert_eq!(tail_flit.source_id, "test".to_string());
+                assert_eq!(tail_flit.packet_id, 0);
+                assert_eq!(tail_flit.next_id, "broadcast".to_string());
+                assert_eq!(tail_flit.flit_num, 2);
+                assert_eq!(tail_flit.channel_id, 0);
+            }
+            _ => panic!(),
+        }
     }
 }

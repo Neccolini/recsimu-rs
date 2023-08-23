@@ -12,6 +12,8 @@ use self::node::Node;
 use self::node_type::NodeType;
 use self::nodes::Nodes;
 
+use crate::network::vid::{add_to_vid_table, print_vid_table};
+
 pub struct SimBuilder {
     pub path: PathBuf,
     pub verbose: bool,
@@ -54,6 +56,8 @@ impl SimBuilder {
             })
             .collect();
 
+        add_to_vid_table(u32::MAX, "broadcast".to_string());
+        print_vid_table();
         Ok(Sim {
             node_num: input.node_num,
             debug: self.verbose,

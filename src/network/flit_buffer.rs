@@ -33,8 +33,11 @@ impl Default for FlitBuffer {
 mod tests {
     use super::*;
     use crate::network::flit::{Flit, HeaderFlit};
+    use crate::network::vid::add_to_vid_table;
+
     #[test]
     fn test_flit_buffer() {
+        add_to_vid_table(u32::MAX, "broadcast".to_string());
         let mut flit_buffer = FlitBuffer::new();
 
         let flit0 = Flit::Header(HeaderFlit {
@@ -42,6 +45,7 @@ mod tests {
             packet_id: 0,
             dest_id: "".to_string(),
             source_id: "".to_string(),
+            prev_id: "".to_string(),
             next_id: "".to_string(),
             flits_len: 0,
         });
@@ -52,6 +56,7 @@ mod tests {
             packet_id: 0,
             dest_id: "".to_string(),
             source_id: "".to_string(),
+            prev_id: "".to_string(),
             next_id: "".to_string(),
             flits_len: 0,
         });
@@ -62,6 +67,7 @@ mod tests {
             packet_id: 0,
             dest_id: "".to_string(),
             source_id: "".to_string(),
+            prev_id: "".to_string(),
             next_id: "".to_string(),
             flits_len: 0,
         });
