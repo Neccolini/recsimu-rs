@@ -39,19 +39,14 @@ impl Nodes {
                         if receiver_id == "broadcast" {
                             let neighbors = self.neighbors.get(&node.id).unwrap();
                             neighbors.iter().for_each(|neighbor| {
-                                let buffer = self
-                                    .flit_buffers
-                                    .entry(neighbor.clone())
-                                    .or_insert(Vec::new());
+                                let buffer = self.flit_buffers.entry(neighbor.clone()).or_default();
                                 buffer.push(flit.clone());
                             });
                         } else if let Some(neighbor_list) = self.neighbors.get(&node.id) {
                             dbg!(neighbor_list, &receiver_id);
                             if neighbor_list.contains(&receiver_id) {
-                                let buffer = self
-                                    .flit_buffers
-                                    .entry(receiver_id.clone())
-                                    .or_insert(Vec::new());
+                                let buffer =
+                                    self.flit_buffers.entry(receiver_id.clone()).or_default();
                                 buffer.push(flit);
                             }
                         }
@@ -61,7 +56,7 @@ impl Nodes {
                     let ack = node.send_ack().unwrap();
                     // flit_buffersに追加
                     if let Some(receiver_id) = ack.get_next_id() {
-                        let buffer = self.flit_buffers.entry(receiver_id).or_insert(Vec::new());
+                        let buffer = self.flit_buffers.entry(receiver_id).or_default();
                         buffer.push(ack);
                     }
                 }
