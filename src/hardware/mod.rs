@@ -9,6 +9,7 @@ pub struct Hardware {
     pub state: NodeState,
     pub retransmission_buffer: Flit,
     pub ack_buffer: Flit,
+    received_msg_is_broadcast: bool,
 }
 
 impl Hardware {
@@ -18,6 +19,7 @@ impl Hardware {
             state: NodeState::default(),
             retransmission_buffer: Flit::default(),
             ack_buffer: Flit::default(),
+            received_msg_is_broadcast: false,
         }
     }
 }
@@ -48,9 +50,12 @@ impl Hardware {
     ) -> Result<Option<Flit>, Box<dyn std::error::Error>> {
         // Data, Header Flitの場合はackを生成する
         // Ack Flitの場合はtransmission_bufferを更新する
-        let next_id = flit.get_next_id().unwrap();
-        if next_id != self.id && next_id != "broadcast" {
-            return Ok(None);
+        if let Some(next_id) = flit.get_next_id() {
+            if next_id != self.id && next_id != "broadcast" {
+                return Ok(None);
+            }
+
+            self.received_msg_is_broadcast = next_id == "broadcast";
         }
 
         match flit {
@@ -74,12 +79,21 @@ impl Hardware {
         match self.state.get() {
             State::Idle => {
                 // retransmission_bufferが空でない場合は送信状態へ遷移
-                if let Flit::Data(_) | Flit::Header(_) = self.retransmission_buffer {
+                if let Flit::Data(_) | Flit::Header(_) | Flit::Tail(_) = self.retransmission_buffer
+                {
                     self.state.next(&State::Sending);
+
+                    if self.retransmission_buffer.is_broadcast() {
+                        self.retransmission_buffer.clear();
+                    }
                 }
             }
             State::Receiving => {
-                self.state.next(&State::ReplyAck);
+                if self.received_msg_is_broadcast {
+                    self.state.next(&State::Idle);
+                } else {
+                    self.state.next(&State::ReplyAck);
+                }
             }
             State::ReplyAck => {
                 self.state.next(&State::Idle);
@@ -94,9 +108,19 @@ impl Hardware {
                 };
 
                 if remaining_cycles == 0 {
-                    self.state.next(&State::Sending);
+                    if let Flit::Data(_) | Flit::Header(_) | Flit::Tail(_) =
+                        self.retransmission_buffer
+                    {
+                        if self.retransmission_buffer.is_broadcast() {
+                            self.retransmission_buffer.clear();
+                        } else {
+                            self.state.next(&State::Sending);
+                        }
+                    } else {
+                        self.state.next(&State::Idle);
+                    }
                 } else {
-                    self.state.next(&State::waiting_state(remaining_cycles - 1))
+                    self.state.next(&State::waiting_state(remaining_cycles - 1));
                 }
             }
         }
@@ -189,6 +213,15 @@ impl Hardware {
                         data_flit.dest_id,
                         data_flit.packet_id,
                         data_flit.flit_num,
+                    )
+                }
+                Flit::Tail(tail_flit) => {
+                    let tail_flit = tail_flit.clone();
+                    (
+                        tail_flit.source_id,
+                        tail_flit.dest_id,
+                        tail_flit.packet_id,
+                        tail_flit.flit_num,
                     )
                 }
                 _ => {

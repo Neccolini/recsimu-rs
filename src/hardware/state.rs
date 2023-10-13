@@ -37,6 +37,9 @@ impl NodeState {
                 State::ReplyAck => {
                     self.state = new_state.clone();
                 }
+                State::Idle => {
+                    self.state = new_state.clone();
+                }
                 _ => {
                     panic!("Invalid state transition from receiving to {new_state:?}");
                 }
