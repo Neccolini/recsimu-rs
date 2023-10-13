@@ -34,6 +34,20 @@ impl Flit {
     pub fn is_tail(&self) -> bool {
         matches!(self, Flit::Tail(_))
     }
+
+    // next_idがbroadcastならtrueを返す
+    pub fn is_broadcast(&self) -> bool {
+        let dest_id = match self {
+            Flit::Header(flit) => flit.dest_id.clone(),
+            Flit::Data(flit) => flit.dest_id.clone(),
+            Flit::Tail(flit) => flit.dest_id.clone(),
+            Flit::Ack(flit) => flit.dest_id.clone(),
+            Flit::Empty => panic!("empty flit is not allowed"),
+        };
+
+        dest_id == "broadcast"
+    }
+
     pub fn clear(&mut self) {
         *self = Flit::Empty;
     }
@@ -43,7 +57,17 @@ impl Flit {
             Flit::Header(flit) => Some(flit.next_id.clone()),
             Flit::Data(flit) => Some(flit.next_id.clone()),
             Flit::Tail(flit) => Some(flit.next_id.clone()),
-            Flit::Ack(flit) => Some(flit.source_id.clone()),
+            Flit::Ack(_) => None,
+            Flit::Empty => None,
+        }
+    }
+
+    pub fn get_dest_id(&self) -> Option<NodeId> {
+        match self {
+            Flit::Header(flit) => Some(flit.dest_id.clone()),
+            Flit::Data(flit) => Some(flit.dest_id.clone()),
+            Flit::Tail(flit) => Some(flit.dest_id.clone()),
+            Flit::Ack(flit) => Some(flit.dest_id.clone()),
             Flit::Empty => None,
         }
     }
