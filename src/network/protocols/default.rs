@@ -25,17 +25,29 @@ impl DefaultProtocol {
     pub fn new(node_type: NodeType) -> Self {
         let mut network_joined = false;
         let mut id = 0;
+        let mut send_packet_buffer = VecDeque::new();
+
         if let NodeType::Coordinator = node_type {
             network_joined = true;
         } else {
             // idはランダムな整数
             let mut rng = rand::thread_rng();
             id = rng.gen();
+
+            send_packet_buffer.push_back(DefaultPacket {
+                message: "preq".to_string(),
+                packet_id: 0,
+                dest_id: BROADCAST_ID,
+                source_id: id,
+                prev_id: id,
+                channel_id: 0,
+                next_id: BROADCAST_ID,
+            });
         }
 
         DefaultProtocol {
             id,
-            send_packet_buffer: VecDeque::new(),
+            send_packet_buffer,
             received_packet_buffer: VecDeque::new(),
             network_joined,
             node_type,
@@ -80,7 +92,7 @@ impl DefaultProtocol {
             let prev_pid = get_pid(self.id).unwrap();
             let dest_pid = get_pid(packet.dest_id).unwrap();
             let src_pid = get_pid(packet.source_id).unwrap();
-            let next_pid = get_pid(self.next_node_id(packet.dest_id, packet.channel_id)).unwrap(); // todo unwrapをなくす
+            let next_pid = get_pid(packet.next_id).unwrap(); // todo unwrapをなくす
 
             return Some(GeneralPacket {
                 data,
@@ -124,7 +136,11 @@ impl DefaultProtocol {
             return BROADCAST_ID;
         }
         if self.parent_id.is_none() {
-            panic!("parent_id is not set");
+            if self.node_type == NodeType::Router {
+                panic!("Router: parent_id is not set");
+            } else {
+                panic!("Coordinator: parent_id is not set");
+            }
         }
 
         self.parent_id.unwrap()
@@ -138,7 +154,7 @@ impl DefaultProtocol {
 
     fn process_received_packet(&mut self, packet: &DefaultPacket) -> Vec<DefaultPacket> {
         // 自分宛でなければ何もしない
-        if packet.next_id != self.id || packet.next_id != BROADCAST_ID {
+        if packet.next_id != self.id && packet.next_id != BROADCAST_ID {
             return vec![];
         }
 
@@ -158,7 +174,12 @@ impl DefaultProtocol {
             (BROADCAST_ID, "preq") => {
                 // packを返す
                 let channel_id = self.channel_id(packet.source_id);
-                let packet = self.gen_packet(self.id, packet.source_id, "pack".to_string());
+                let packet = self.gen_packet(
+                    self.id,
+                    packet.source_id,
+                    packet.source_id,
+                    "pack".to_string(),
+                );
                 return vec![packet];
             }
 
@@ -194,19 +215,26 @@ impl DefaultProtocol {
 
             // address to me, "jreq"
             (id, "jreq") if id == self.id => {
+                self.update_table(packet.source_id, packet.prev_id);
                 // jackを返す
                 let channel_id = self.channel_id(packet.source_id);
-                let packet = self.gen_packet(self.id, packet.source_id, "jack".to_string());
+                let next_id = self.next_node_id(packet.source_id, channel_id);
+
+                let packet =
+                    self.gen_packet(self.id, packet.source_id, next_id, "jack".to_string());
                 return vec![packet];
             }
 
             // address to me, "jack"
             (id, "jack") if id == self.id => {
                 // tableに追加
-                self.table.insert(packet.source_id, packet.prev_id);
+                self.update_table(packet.source_id, packet.prev_id);
                 // packを返す
                 let channel_id = self.channel_id(packet.source_id);
-                let packet = self.gen_packet(self.id, packet.source_id, "pack".to_string());
+                let next_id = self.next_node_id(packet.source_id, channel_id);
+
+                let packet =
+                    self.gen_packet(self.id, packet.source_id, next_id, "pack".to_string());
                 return vec![packet];
             }
 
@@ -257,7 +285,12 @@ impl DefaultProtocol {
                 }
 
                 // packを返す
-                let packet = self.gen_packet(self.id, packet.source_id, "pack".to_string());
+                let packet = self.gen_packet(
+                    self.id,
+                    packet.source_id,
+                    packet.source_id,
+                    "pack".to_string(),
+                );
                 return vec![packet];
             }
 
@@ -297,7 +330,14 @@ impl DefaultProtocol {
                 self.parent_id = Some(packet.source_id);
 
                 // jreqを送信
-                let packet = self.gen_packet(self.id, packet.source_id, "jreq".to_string());
+                let packet = self.gen_packet(
+                    self.id,
+                    packet.source_id,
+                    packet.source_id,
+                    "jreq".to_string(),
+                );
+
+                return vec![packet];
             }
 
             // address to me, "jreq"
@@ -354,7 +394,13 @@ impl DefaultProtocol {
         vec![] // should be unreachable
     }
 
-    fn gen_packet(&mut self, src_id: u32, dest_id: u32, message: String) -> DefaultPacket {
+    fn gen_packet(
+        &mut self,
+        src_id: u32,
+        dest_id: u32,
+        next_id: u32,
+        message: String,
+    ) -> DefaultPacket {
         let packet_id = self.packet_num_cnt;
         self.packet_num_cnt += 1;
 
@@ -365,15 +411,11 @@ impl DefaultProtocol {
             source_id: src_id,
             prev_id: self.id,
             channel_id: self.channel_id(dest_id),
-            next_id: 0, // todo テーブルから引く
+            next_id,
         }
     }
 
     fn update_table(&mut self, dest_id: u32, next_id: u32) {
-        if dest_id == next_id {
-            return;
-        }
-
         // todo すでにあったら場合
 
         self.table.insert(dest_id, next_id);
@@ -383,20 +425,29 @@ impl DefaultProtocol {
         assert!(packet.dest_id != self.id);
         assert!(packet.dest_id != BROADCAST_ID);
 
+        // todo ここは，table用のget関数を用意する
         // もし宛先がテーブルにあれば
         if self.table.contains_key(&packet.dest_id) {
             // テーブルから次のノードを取得
-            let next_id = self.table.get(&packet.dest_id).unwrap();
+            let next_id = self.table.get(&packet.dest_id).copied().unwrap();
             // パケットを生成
-            let routing_packet =
-                self.gen_packet(packet.source_id, *next_id, packet.message.clone());
+            let routing_packet = self.gen_packet(
+                packet.source_id,
+                packet.dest_id,
+                next_id,
+                packet.message.clone(),
+            );
             return vec![routing_packet];
         } else {
             // 親ノードあて
             if let Some(parent_id) = self.parent_id {
                 // パケットを生成
-                let routing_packet =
-                    self.gen_packet(packet.source_id, parent_id, packet.message.clone());
+                let routing_packet = self.gen_packet(
+                    packet.source_id,
+                    packet.dest_id,
+                    parent_id,
+                    packet.message.clone(),
+                );
                 return vec![routing_packet];
             }
         }
