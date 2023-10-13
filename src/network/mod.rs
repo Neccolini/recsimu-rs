@@ -89,6 +89,11 @@ impl Network {
     }
 
     pub fn receive_flit(&mut self, flit: &Flit, channel_id: ChannelId) {
+        if let Flit::Ack(_) = flit {
+            // ack flitは受け取らない
+            return;
+        }
+
         // receiving_flit_bufferのchannel_id番目のFlitBufferにpushする
         self.receiving_flit_buffer
             .get_mut(&channel_id)
