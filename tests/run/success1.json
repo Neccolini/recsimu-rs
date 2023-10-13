@@ -14,7 +14,7 @@
   ],
   "packets": [
     {
-      "cycle_num": 1,
+      "cycle_num": 10,
       "src_id": "node1",
       "dest_id": "node2",
       "msg": "Hello, World!"

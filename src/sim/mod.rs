@@ -109,9 +109,9 @@ mod tests {
         assert_eq!(sim.nodes.nodes[0].id, "node1");
         assert_eq!(sim.nodes.nodes[0].node_type, NodeType::Coordinator);
         assert_eq!(sim.nodes.nodes[0].packets.len(), 1);
-        assert_eq!(sim.nodes.nodes[0].packets[&1].source_id, "node1");
-        assert_eq!(sim.nodes.nodes[0].packets[&1].dest_id, "node2");
-        assert_eq!(sim.nodes.nodes[0].packets[&1].message, "Hello, World!");
+        assert_eq!(sim.nodes.nodes[0].packets[&10].source_id, "node1");
+        assert_eq!(sim.nodes.nodes[0].packets[&10].dest_id, "node2");
+        assert_eq!(sim.nodes.nodes[0].packets[&10].message, "Hello, World!");
         assert_eq!(sim.nodes.nodes[1].id, "node2");
         assert_eq!(sim.nodes.nodes[1].node_type, NodeType::Router);
         assert_eq!(sim.nodes.nodes[1].packets.len(), 0);
