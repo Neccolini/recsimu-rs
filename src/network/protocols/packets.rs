@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct GeneralPacket {
     pub data: Vec<u8>,
     pub dest_id: String,
