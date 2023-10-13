@@ -29,7 +29,6 @@ impl Nodes {
         // 送信状態のノードはflitを送信
         for node in self.nodes.iter_mut() {
             // todo 後でnodeに切り出す
-            dbg!(&node.id, node.hardware.state.get());
             match node.hardware.state.get() {
                 State::Sending => {
                     let flit = node.send_flit().unwrap();
@@ -43,7 +42,6 @@ impl Nodes {
                                 buffer.push(flit.clone());
                             });
                         } else if let Some(neighbor_list) = self.neighbors.get(&node.id) {
-                            dbg!(neighbor_list, &receiver_id);
                             if neighbor_list.contains(&receiver_id) {
                                 let buffer =
                                     self.flit_buffers.entry(receiver_id.clone()).or_default();
@@ -54,8 +52,9 @@ impl Nodes {
                 }
                 State::ReplyAck => {
                     let ack = node.send_ack().unwrap();
+
                     // flit_buffersに追加
-                    if let Some(receiver_id) = ack.get_next_id() {
+                    if let Some(receiver_id) = ack.get_dest_id() {
                         let buffer = self.flit_buffers.entry(receiver_id).or_default();
                         buffer.push(ack);
                     }
@@ -63,24 +62,23 @@ impl Nodes {
                 _ => {}
             }
         }
-        dbg!(self.nodes.len());
+
         // バッファにあるメッセージを受信
         for node in self.nodes.iter_mut() {
             // todo nodeに切り出す
             let flits = self.flit_buffers.get(&node.id);
-            dbg!(flits);
-            dbg!(&self.flit_buffers, &node.id);
+
             if flits.is_none() {
                 continue;
             }
+
             let flits = flits.unwrap();
-            dbg!(flits.len());
+
             // 衝突がなければ受信
             if flits.len() == 1 {
                 let flit = &flits[0];
 
                 if let State::Idle | State::Waiting(_) = node.hardware.state.get() {
-                    dbg!("receive flit: {:?}", flit);
                     // 状態を受信中に変更
                     let _ = node.receive_flit(flit);
                 }
@@ -111,13 +109,7 @@ mod tests {
     #[test]
     fn test_run_cycle() {
         // node1からnode2へのパケットを作成
-        let mut packets: HashMap<u32, InjectionPacket> = HashMap::new();
-        let packet = InjectionPacket {
-            message: "test".to_string(),
-            source_id: "node1".to_string(),
-            dest_id: "broadcast".to_string(),
-        };
-        packets.insert(0, packet);
+        let packets: HashMap<u32, InjectionPacket> = HashMap::new();
 
         let mut neighbors = HashMap::new();
         neighbors.insert("node1".to_string(), vec!["node2".to_string()]);
@@ -146,8 +138,8 @@ mod tests {
         nodes.run_cycle(0);
 
         // nodeの状態を見る
-        assert_eq!(*nodes.nodes[0].hardware.state.get(), State::Sending);
-        assert_eq!(*nodes.nodes[1].hardware.state.get(), State::Receiving);
+        assert_eq!(*nodes.nodes[0].hardware.state.get(), State::Receiving);
+        assert_eq!(*nodes.nodes[1].hardware.state.get(), State::Sending);
 
         nodes.run_cycle(1);
 
