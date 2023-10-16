@@ -3,7 +3,7 @@ pub(crate) mod node_type;
 pub mod nodes;
 
 use crate::file::InputFile;
-use crate::log::Log;
+use crate::log::{get_all_log, Log};
 use crate::network::protocols::packets::InjectionPacket;
 use std::collections::HashMap;
 use std::{error, path::PathBuf};
@@ -87,6 +87,11 @@ impl Sim {
             self.nodes.run_cycle(self.cur_cycles);
             self.cur_cycles += 1;
         }
+
+        // ログを出力する
+        get_all_log().iter().for_each(|log| {
+            println!("{:?}", log);
+        })
     }
 }
 

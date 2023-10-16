@@ -28,6 +28,7 @@ pub struct PacketLog {
     pub route_info: Vec<String>,
     pub flit_logs: Vec<FlitLog>,
     pub is_delivered: bool,
+    pub message: String,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -43,6 +44,7 @@ pub struct NewPacketLogInfo {
     pub from_id: String,
     pub dest_id: String,
     pub send_cycle: u32,
+    pub message: String,
 }
 
 pub fn post_new_packet_log(
@@ -59,6 +61,7 @@ pub fn post_new_packet_log(
         route_info: vec![packet_info.from_id],
         flit_logs: Vec::new(),
         is_delivered: false,
+        message: packet_info.message,
     };
 
     LOG.lock()
@@ -122,6 +125,12 @@ pub fn get_packet_log(packet_id: &String) -> Option<PacketLog> {
     log.packets_info.get(packet_id).cloned()
 }
 
+pub fn get_all_log() -> Vec<PacketLog> {
+    let log = LOG.lock().unwrap();
+
+    log.packets_info.values().cloned().collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -133,6 +142,7 @@ mod tests {
             from_id: "from_id".to_string(),
             dest_id: "dest_id".to_string(),
             send_cycle: 0,
+            message: "test".to_string(),
         };
         let packet_log = post_new_packet_log(packet_info).unwrap();
         assert_eq!(packet_log.packet_id, "packet_id");
@@ -152,6 +162,7 @@ mod tests {
             from_id: "from_id".to_string(),
             dest_id: "dest_id".to_string(),
             send_cycle: 0,
+            message: "test".to_string(),
         };
         let packet_log = post_new_packet_log(packet_info).unwrap();
 
@@ -180,6 +191,7 @@ mod tests {
             from_id: "from_id".to_string(),
             dest_id: "dest_id".to_string(),
             send_cycle: 0,
+            message: "test".to_string(),
         };
         let packet_log = post_new_packet_log(packet_info).unwrap();
 
