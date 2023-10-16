@@ -147,7 +147,7 @@ impl Network {
             let log = NewPacketLogInfo {
                 packet_id,
                 from_id: packet.source_id.clone(),
-                dist_id: packet.dest_id.clone(),
+                dest_id: packet.dest_id.clone(),
                 send_cycle: self.cur_cycle,
             };
             let _ = post_new_packet_log(log);
