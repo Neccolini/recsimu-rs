@@ -36,7 +36,7 @@ impl DefaultProtocol {
 
             send_packet_buffer.push_back(DefaultPacket {
                 message: "preq".to_string(),
-                packet_id: 0,
+                packet_id: u32::MAX, // todo
                 dest_id: BROADCAST_ID,
                 source_id: id,
                 prev_id: id,
@@ -67,16 +67,8 @@ impl DefaultProtocol {
         let channel_id = self.channel_id(dest_vid);
         let next_vid = self.next_node_id(dest_vid, channel_id);
 
-        let default_packet = DefaultPacket {
-            message: packet.message.clone(),
-            packet_id: self.packet_num_cnt,
-            dest_id: dest_vid,
-            source_id: self.id,
-            prev_id: self.id,
-            channel_id,
-            next_id: next_vid,
-        };
-
+        let default_packet = self.gen_packet(self.id, dest_vid, next_vid, packet.message.clone());
+        dbg!(default_packet.clone());
         self.send_packet_buffer.push_back(default_packet);
         self.packet_num_cnt += 1;
     }

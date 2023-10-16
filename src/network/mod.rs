@@ -5,6 +5,7 @@ pub mod vid;
 
 use self::flit::{data_to_flits, flits_to_data};
 use self::flit_buffer::FlitBuffer;
+use self::protocols::packets::DefaultPacket;
 use self::protocols::packets::InjectionPacket;
 use self::protocols::NetworkProtocol;
 use self::vid::*;
@@ -142,14 +143,17 @@ impl Network {
 
 impl Network {
     fn log_handler(&self, packet: &GeneralPacket) {
-        let packet_id = self.id.clone() + "_" + &packet.packet_id.to_string();
+        let packet_id = packet.source_id.to_string() + "_" + &packet.packet_id.to_string();
+
         if get_packet_log(&packet_id).is_none() {
             let log = NewPacketLogInfo {
                 packet_id,
                 from_id: packet.source_id.clone(),
-                dist_id: packet.dest_id.clone(),
+                dest_id: packet.dest_id.clone(),
                 send_cycle: self.cur_cycle,
+                message: self.get_message(packet),
             };
+
             let _ = post_new_packet_log(log);
         } else {
             let update_log = UpdatePacketLogInfo {
@@ -160,6 +164,15 @@ impl Network {
             };
 
             let _ = update_packet_log(packet_id, update_log);
+        }
+    }
+
+    fn get_message(&self, packet: &GeneralPacket) -> String {
+        match self.routing {
+            NetworkProtocol::DefaultFunction(_) => {
+                let p = DefaultPacket::from_general(packet);
+                p.message
+            }
         }
     }
 }
@@ -186,8 +199,13 @@ mod tests {
         };
         network.send_new_packet(&packet);
         network.update(0);
-        let flit = network.send_flit(0).unwrap();
 
+        // preq
+        network.send_flit(0).unwrap();
+        network.send_flit(0).unwrap();
+
+        network.update(1);
+        let flit = network.send_flit(0).unwrap();
         assert_eq!(
             flit,
             Flit::Header(HeaderFlit {
@@ -200,6 +218,8 @@ mod tests {
                 channel_id: 0,
             })
         );
+
+        network.update(2);
         let flit = network.send_flit(0).unwrap();
         match flit {
             Flit::Tail(tail_flit) => {
