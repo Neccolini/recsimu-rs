@@ -1,8 +1,11 @@
 pub(crate) mod constants;
 pub mod state;
 
+extern crate rand;
 use self::state::{NodeState, State};
 use crate::network::flit::{AckFlit, Flit};
+use rand::Rng;
+
 #[derive(Default)]
 pub struct Hardware {
     pub id: String,
@@ -99,7 +102,16 @@ impl Hardware {
                 self.state.next(&State::Idle);
             }
             State::Sending => {
-                self.state.next(&State::waiting_state(0)); // todo 0を変数にする
+                // resend_times
+                let resend_times = self.state.get_resend_times();
+                if resend_times < constants::MAX_RESEND_TIMES {
+                    self.state
+                        .next(&State::waiting_state(self.calc_wait_cycles()));
+                    self.state.set_resend_times(resend_times + 1);
+                } else {
+                    self.state.set_resend_times(0);
+                    self.state.next(&State::Idle);
+                }
             }
             State::Waiting(_) => {
                 let remaining_cycles = match self.state.get() {
@@ -248,6 +260,22 @@ impl Hardware {
             panic!("receive_ack: flit is not ack {flit:?}");
         }
     }
+
+    fn calc_wait_cycles(&self) -> u32 {
+        let resend_times = self.state.get_resend_times();
+
+        if resend_times == 0 {
+            return constants::WAIT_ACK_CYCLES;
+        }
+
+        let mut rng = rand::thread_rng();
+        let begin = 2i32.pow(resend_times as u32 - 1);
+        let end = 2i32.pow(resend_times as u32 + 1);
+
+        let random_backoff = rng.gen_range(begin..end) as u32;
+
+        constants::WAIT_ACK_CYCLES + random_backoff
+    }
 }
 
 #[cfg(test)]
@@ -298,5 +326,27 @@ mod tests {
         assert_eq!(received_flit, Some(flit.clone()));
         assert_eq!(hardware.ack_buffer.is_empty(), false);
         assert_eq!(hardware.ack_buffer.is_ack(), true);
+    }
+
+    // calc_wait_cyclesのテスト
+    #[test]
+    fn test_calc_wait_cycles() {
+        let mut hardware = Hardware::new("dest_id".to_string());
+        hardware.state.set_resend_times(0);
+        assert_eq!(hardware.calc_wait_cycles(), 2);
+
+        for _ in 0..100 {
+            hardware.state.set_resend_times(1);
+            let val = hardware.calc_wait_cycles();
+            assert!(3 <= val && val <= 5);
+
+            hardware.state.set_resend_times(2);
+            let val = hardware.calc_wait_cycles();
+            assert!(4 <= val && val <= 9);
+
+            hardware.state.set_resend_times(3);
+            let val = hardware.calc_wait_cycles();
+            assert!(6 <= val && val <= 17);
+        }
     }
 }

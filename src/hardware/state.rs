@@ -82,6 +82,10 @@ impl NodeState {
     pub fn set_resend_times(&mut self, times: u8) {
         self.resend_times = times;
     }
+
+    pub fn get_resend_times(&self) -> u8 {
+        self.resend_times
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Default)]
