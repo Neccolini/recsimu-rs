@@ -13,6 +13,7 @@ pub struct Hardware {
     pub retransmission_buffer: Flit,
     pub ack_buffer: Flit,
     received_msg_is_broadcast: bool,
+    received_msg_is_ack: bool,
 }
 
 impl Hardware {
@@ -23,6 +24,7 @@ impl Hardware {
             retransmission_buffer: Flit::default(),
             ack_buffer: Flit::default(),
             received_msg_is_broadcast: false,
+            received_msg_is_ack: false,
         }
     }
 }
@@ -64,11 +66,17 @@ impl Hardware {
         match flit {
             Flit::Data(_) | Flit::Header(_) | Flit::Tail(_) => {
                 let _ack = self.ack_gen(flit)?;
+
+                self.received_msg_is_ack = false;
+
                 Ok(Some(flit.clone()))
             }
             Flit::Ack(_) => {
                 let ack = self.receive_ack(flit)?;
                 self.ack_buffer = ack;
+
+                self.received_msg_is_ack = true;
+
                 Ok(Some(flit.clone()))
             }
             _ => {
@@ -92,7 +100,7 @@ impl Hardware {
                 }
             }
             State::Receiving => {
-                if self.received_msg_is_broadcast {
+                if self.received_msg_is_broadcast || self.received_msg_is_ack {
                     self.state.next(&State::Idle);
                 } else {
                     self.state.next(&State::ReplyAck);
