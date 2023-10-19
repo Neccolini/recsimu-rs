@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use crate::network::flit::Flit;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FlitBuffer {
     flit_buffer: VecDeque<Flit>,
 }
