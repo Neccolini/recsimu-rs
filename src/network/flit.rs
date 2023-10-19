@@ -42,7 +42,10 @@ impl Flit {
             Flit::Data(flit) => flit.dest_id.clone(),
             Flit::Tail(flit) => flit.dest_id.clone(),
             Flit::Ack(flit) => flit.dest_id.clone(),
-            Flit::Empty => panic!("empty flit is not allowed"),
+            Flit::Empty => {
+                dbg!("flit is empty");
+                return false;
+            }
         };
 
         dest_id == "broadcast"
@@ -52,12 +55,22 @@ impl Flit {
         *self = Flit::Empty;
     }
 
+    pub fn get_prev_id(&self) -> Option<NodeId> {
+        match self {
+            Flit::Header(flit) => Some(flit.prev_id.clone()),
+            Flit::Data(flit) => Some(flit.prev_id.clone()),
+            Flit::Tail(flit) => Some(flit.prev_id.clone()),
+            Flit::Ack(ack) => Some(ack.source_id.clone()),
+            Flit::Empty => None,
+        }
+    }
+
     pub fn get_next_id(&self) -> Option<NodeId> {
         match self {
             Flit::Header(flit) => Some(flit.next_id.clone()),
             Flit::Data(flit) => Some(flit.next_id.clone()),
             Flit::Tail(flit) => Some(flit.next_id.clone()),
-            Flit::Ack(_) => None,
+            Flit::Ack(ack) => Some(ack.dest_id.clone()),
             Flit::Empty => None,
         }
     }
@@ -78,6 +91,16 @@ impl Flit {
             Flit::Data(flit) => Some(flit.channel_id),
             Flit::Tail(flit) => Some(flit.channel_id),
             Flit::Ack(flit) => Some(flit.channel_id),
+            Flit::Empty => None,
+        }
+    }
+
+    pub fn get_packet_id(&self) -> Option<u32> {
+        match self {
+            Flit::Header(flit) => Some(flit.packet_id),
+            Flit::Data(flit) => Some(flit.packet_id),
+            Flit::Tail(flit) => Some(flit.packet_id),
+            Flit::Ack(flit) => Some(flit.packet_id),
             Flit::Empty => None,
         }
     }
