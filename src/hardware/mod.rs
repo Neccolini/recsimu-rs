@@ -14,6 +14,7 @@ pub struct Hardware {
     pub ack_buffer: Flit,
     received_msg_is_broadcast: bool,
     received_msg_is_ack: bool,
+    receiving_packet_info: Option<(String, u32)>, // node_id, packet_id
 }
 
 impl Hardware {
@@ -25,6 +26,7 @@ impl Hardware {
             ack_buffer: Flit::default(),
             received_msg_is_broadcast: false,
             received_msg_is_ack: false,
+            receiving_packet_info: None,
         }
     }
 }
@@ -63,17 +65,48 @@ impl Hardware {
             self.received_msg_is_broadcast = next_id == "broadcast";
         }
 
+        // 受信中のパケットでない場合は破棄
+        if let Some((receiving_packet_node_id, receiving_packet_id)) =
+            self.receiving_packet_info.clone()
+        {
+            let Some(prev_id) = flit.get_prev_id() else { panic!("received packet is empty") };
+            let Some(flit_num) = flit.get_packet_id() else { panic!("received packet is empty") };
+
+            if receiving_packet_node_id != prev_id || flit_num != receiving_packet_id {
+                return Ok(None);
+            }
+        }
+
         match flit {
-            Flit::Data(_) | Flit::Header(_) | Flit::Tail(_) => {
+            Flit::Header(header_flit) => {
+                let _ack = self.ack_gen(flit)?;
+
+                self.received_msg_is_ack = false;
+
+                self.receiving_packet_info =
+                    Some((header_flit.prev_id.clone(), header_flit.packet_id)); // 受信開始
+
+                Ok(Some(flit.clone()))
+            }
+            Flit::Data(_) => {
                 let _ack = self.ack_gen(flit)?;
 
                 self.received_msg_is_ack = false;
 
                 Ok(Some(flit.clone()))
             }
+            Flit::Tail(_) => {
+                let _ack = self.ack_gen(flit)?;
+
+                self.received_msg_is_ack = false;
+
+                self.receiving_packet_info = None; // 受信終了なのでリセット
+
+                Ok(Some(flit.clone()))
+            }
             Flit::Ack(_) => {
-                let ack = self.receive_ack(flit)?;
-                self.ack_buffer = ack;
+                let _ack = self.receive_ack(flit)?;
+                // self.ack_buffer = ack; // todo 右辺はNoneでは？
 
                 self.received_msg_is_ack = true;
 
@@ -93,14 +126,12 @@ impl Hardware {
                 if let Flit::Data(_) | Flit::Header(_) | Flit::Tail(_) = self.retransmission_buffer
                 {
                     self.state.next(&State::Sending);
-
-                    if self.retransmission_buffer.is_broadcast() {
-                        self.retransmission_buffer.clear();
-                    }
                 }
             }
             State::Receiving => {
-                if self.received_msg_is_broadcast || self.received_msg_is_ack {
+                if self.received_msg_is_ack {
+                    self.state.set_resend_times(0);
+
                     self.state.next(&State::Idle);
                 } else {
                     self.state.next(&State::ReplyAck);
@@ -118,7 +149,7 @@ impl Hardware {
                     self.state.set_resend_times(resend_times + 1);
                 } else {
                     self.state.set_resend_times(0);
-                    self.state.next(&State::Idle);
+                    self.state.next(&State::waiting_state(0));
                 }
             }
             State::Waiting(_) => {
@@ -126,16 +157,11 @@ impl Hardware {
                     State::Waiting(state::Waiting { remaining_cycles }) => *remaining_cycles,
                     _ => panic!("update_state: state is not waiting"),
                 };
-
                 if remaining_cycles == 0 {
                     if let Flit::Data(_) | Flit::Header(_) | Flit::Tail(_) =
                         self.retransmission_buffer
                     {
-                        if self.retransmission_buffer.is_broadcast() {
-                            self.retransmission_buffer.clear();
-                        } else {
-                            self.state.next(&State::Sending);
-                        }
+                        self.state.next(&State::Sending);
                     } else {
                         self.state.next(&State::Idle);
                     }
@@ -256,6 +282,8 @@ impl Hardware {
             {
                 // ackを受信したのでretransmission_bufferをクリアする
                 self.retransmission_buffer = Flit::default();
+                self.set_state(&State::Idle);
+
                 Ok(flit.clone())
             } else {
                 Err(format!(
