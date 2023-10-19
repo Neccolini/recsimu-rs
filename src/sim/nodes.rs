@@ -82,6 +82,8 @@ impl Nodes {
                     // 状態を受信中に変更
                     let _ = node.receive_flit(flit);
                 }
+            } else {
+                eprintln!("collision occured at {}", node.id);
             }
         }
         dbg!(_cur_cycle);
