@@ -40,18 +40,12 @@ impl Node {
     }
 
     pub fn send_flit(&mut self) -> Result<Flit, Box<dyn std::error::Error>> {
-        // フリットを送信する
-        // ネットワーク層からフリットを受け取る
-        // flitがNoneならOkを返す
-        if let Some(flit) = self.network.send_flit(0) {
-            self.hardware.send_flit(&flit).map_err(|e| {
-                dbg!("error occured while sending a flit: {e:?}");
-                e
-            })?;
-            return Ok(flit);
+        // retransmission_bufferから取り出し，送信する
+        let x = self.hardware.retransmission_buffer.clone();
+        if x.is_empty() {
+            return Err("retransmission_buffer is empty".into());
         }
-
-        Ok(Flit::Empty)
+        Ok(x)
     }
 
     pub fn send_ack(&mut self) -> Result<Flit, Box<dyn std::error::Error>> {
@@ -79,12 +73,11 @@ impl Node {
             // 仮想channelを選択
             let channel = self.select_vc();
             // network.send_flit_bufferからフリットを取り出す
-            if let Some(flit_buffer) = self.network.sending_flit_buffer.get_mut(&channel) {
-                //flit_bufferからフリットを取り出し，送信
-                let flit = flit_buffer.pop();
-                if flit.is_some() {
-                    self.hardware.send_flit(&flit.unwrap())?;
-                }
+            if let Some(flit) = self.network.send_flit(channel) {
+                self.hardware.send_flit(&flit).map_err(|e| {
+                    dbg!("error occured while sending a flit: {e:?}");
+                    e
+                })?;
             }
         }
 
@@ -99,6 +92,7 @@ impl Node {
 
         if let Some(flit) = self.hardware.receive_flit(flit)? {
             self.network.receive_flit(&flit, 0);
+            dbg!("flit received");
         }
         Ok(())
     }
