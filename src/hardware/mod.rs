@@ -77,6 +77,7 @@ impl Hardware {
             };
 
             if receiving_packet_node_id != prev_id || flit_num != receiving_packet_id {
+                self.set_state(&State::Idle);
                 return Ok(None);
             }
         }
