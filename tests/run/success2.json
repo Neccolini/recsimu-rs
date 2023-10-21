@@ -1,6 +1,6 @@
 {
-  "node_num": 2,
-  "total_cycles": 10,
+  "node_num": 3,
+  "total_cycles": 100,
   "channel_num": 1,
   "nodes": [
     {
@@ -10,21 +10,23 @@
     {
       "node_id": "node2",
       "node_type": "router"
+    },
+    {
+      "node_id": "node3",
+      "node_type": "router"
     }
   ],
   "packets": [
-    {
-      "cycle_num": 8,
-      "src_id": "node1",
-      "dest_id": "node2",
-      "msg": "Hello, World!"
-    }
   ],
   "neighbors": {
     "node1": [
-      "node2"
+      "node2",
+      "node3"
     ],
     "node2": [
+      "node1"
+    ],
+    "node3": [
       "node1"
     ]
   }
