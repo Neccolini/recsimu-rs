@@ -69,8 +69,12 @@ impl Hardware {
         if let Some((receiving_packet_node_id, receiving_packet_id)) =
             self.receiving_packet_info.clone()
         {
-            let Some(prev_id) = flit.get_prev_id() else { panic!("received packet is empty") };
-            let Some(flit_num) = flit.get_packet_id() else { panic!("received packet is empty") };
+            let Some(prev_id) = flit.get_prev_id() else {
+                panic!("received packet is empty") 
+            };
+            let Some(flit_num) = flit.get_packet_id() else {
+                panic!("received packet is empty") 
+            };
 
             if receiving_packet_node_id != prev_id || flit_num != receiving_packet_id {
                 return Ok(None);
