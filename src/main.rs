@@ -78,3 +78,28 @@ fn main() -> Result<(), Box<dyn error::Error>> {
     };
     Ok(())
 }
+
+// test
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+
+    #[test]
+    fn test_run() {
+        let testfile_dir = "tests/run/";
+        // testfile_dir以下のファイルを全てテストする
+        for entry in fs::read_dir(testfile_dir).unwrap() {
+            let entry = entry.unwrap();
+            let path = entry.path();
+            dbg!(entry, path.clone());
+            if path.is_file() {
+                let verbose = false;
+                let mut sim = SimBuilder::new(path, verbose).build().unwrap();
+                for _ in 0..100 {
+                    sim.run();
+                }
+            }
+        }
+    }
+}
