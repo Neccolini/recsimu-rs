@@ -82,6 +82,8 @@ fn main() -> Result<(), Box<dyn error::Error>> {
 // test
 #[cfg(test)]
 mod tests {
+    use recsimu::network::vid::clear_vid_table;
+
     use super::*;
     use std::fs;
 
@@ -96,6 +98,7 @@ mod tests {
             if path.is_file() {
                 let verbose = false;
                 for _ in 0..10 {
+                    clear_vid_table();
                     let mut sim = SimBuilder::new(path.clone(), verbose).build().unwrap();
                     sim.run();
                 }
