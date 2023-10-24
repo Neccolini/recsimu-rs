@@ -112,11 +112,14 @@ impl Nodes {
 mod tests {
     use super::*;
     use crate::network::protocols::packets::InjectionPacket;
+    use crate::network::vid::add_to_vid_table;
     use crate::sim::NodeType;
 
     #[test]
     fn test_run_cycle() {
         // node1からnode2へのパケットを作成
+        add_to_vid_table(u32::MAX, "broadcast".to_string());
+
         let packets: HashMap<u32, InjectionPacket> = HashMap::new();
 
         let mut neighbors = HashMap::new();
