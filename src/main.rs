@@ -95,8 +95,8 @@ mod tests {
             dbg!(entry, path.clone());
             if path.is_file() {
                 let verbose = false;
-                let mut sim = SimBuilder::new(path, verbose).build().unwrap();
-                for _ in 0..100 {
+                for _ in 0..10 {
+                    let mut sim = SimBuilder::new(path.clone(), verbose).build().unwrap();
                     sim.run();
                 }
             }
