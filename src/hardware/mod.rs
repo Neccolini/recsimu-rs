@@ -14,7 +14,7 @@ pub struct Hardware {
     pub ack_buffer: Flit,
     received_msg_is_broadcast: bool,
     received_msg_is_ack: bool,
-    receiving_packet_info: Option<(String, u32)>, // node_id, packet_id
+    receiving_packet_info: ReceivingPacketInfo, // node_id, packet_id, flit_num
 }
 
 impl Hardware {
@@ -26,7 +26,7 @@ impl Hardware {
             ack_buffer: Flit::default(),
             received_msg_is_broadcast: false,
             received_msg_is_ack: false,
-            receiving_packet_info: None,
+            receiving_packet_info: ReceivingPacketInfo::default(),
         }
     }
 }
@@ -65,10 +65,8 @@ impl Hardware {
             self.received_msg_is_broadcast = next_id == "broadcast";
         }
 
-        // 受信中のパケットでない場合は破棄
-        if let Some((receiving_packet_node_id, receiving_packet_id)) =
-            self.receiving_packet_info.clone()
-        {
+        if !self.receiving_packet_info.is_none {
+            // 受信中のパケットでない場合は破棄
             let Some(prev_id) = flit.get_prev_id() else {
                 panic!("received packet is empty");
             };
@@ -76,7 +74,9 @@ impl Hardware {
                 panic!("received packet is empty");
             };
 
-            if receiving_packet_node_id != prev_id || flit_num != receiving_packet_id {
+            if self.receiving_packet_info.node_id != prev_id
+                || flit_num != self.receiving_packet_info.packet_id
+            {
                 self.set_state(&State::Idle);
                 return Ok(None);
             }
@@ -89,14 +89,17 @@ impl Hardware {
                 self.received_msg_is_ack = false;
 
                 self.receiving_packet_info =
-                    Some((header_flit.prev_id.clone(), header_flit.packet_id)); // 受信開始
+                    ReceivingPacketInfo::new(header_flit.prev_id.clone(), header_flit.packet_id);
 
                 Ok(Some(flit.clone()))
             }
-            Flit::Data(_) => {
+            Flit::Data(data_flit) => {
                 let _ack = self.ack_gen(flit)?;
 
                 self.received_msg_is_ack = false;
+
+                self.receiving_packet_info
+                    .update_flit_num(data_flit.flit_num);
 
                 Ok(Some(flit.clone()))
             }
@@ -105,7 +108,7 @@ impl Hardware {
 
                 self.received_msg_is_ack = false;
 
-                self.receiving_packet_info = None; // 受信終了なのでリセット
+                self.receiving_packet_info.clear(); // 受信終了なのでリセット
 
                 Ok(Some(flit.clone()))
             }
@@ -316,6 +319,46 @@ impl Hardware {
         let random_backoff = rng.gen_range(begin..end) as u32;
 
         constants::WAIT_ACK_CYCLES + random_backoff
+    }
+}
+
+#[derive(Debug, Clone)]
+struct ReceivingPacketInfo {
+    node_id: String,
+    packet_id: u32,
+    flit_num: u32,
+    is_none: bool,
+}
+
+impl Default for ReceivingPacketInfo {
+    fn default() -> Self {
+        ReceivingPacketInfo {
+            node_id: String::default(),
+            packet_id: 0,
+            flit_num: u32::MAX,
+            is_none: true,
+        }
+    }
+}
+
+impl ReceivingPacketInfo {
+    fn new(node_id: String, packet_id: u32) -> Self {
+        Self {
+            node_id,
+            packet_id,
+            flit_num: 0,
+            is_none: false,
+        }
+    }
+    fn update_flit_num(&mut self, flit_num: u32) {
+        self.flit_num = flit_num;
+    }
+
+    fn clear(&mut self) {
+        self.node_id = String::default();
+        self.packet_id = 0;
+        self.flit_num = 0;
+        self.is_none = true;
     }
 }
 
