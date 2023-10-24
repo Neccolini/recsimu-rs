@@ -104,6 +104,16 @@ impl Flit {
             Flit::Empty => None,
         }
     }
+
+    pub fn get_flit_num(&self) -> Option<u32> {
+        match self {
+            Flit::Header(_) => Some(0),
+            Flit::Data(flit) => Some(flit.flit_num),
+            Flit::Tail(flit) => Some(flit.flit_num),
+            Flit::Ack(flit) => Some(flit.flit_num),
+            Flit::Empty => None,
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
