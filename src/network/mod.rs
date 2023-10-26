@@ -3,8 +3,8 @@ pub mod flit_buffer;
 pub mod protocols;
 pub mod vid;
 
-use self::flit::{data_to_flits, flits_to_data};
-use self::flit_buffer::FlitBuffer;
+use self::flit::data_to_flits;
+use self::flit_buffer::{FlitBuffer, ReceivedFlitsBuffer};
 use self::protocols::packets::DefaultPacket;
 use self::protocols::packets::InjectionPacket;
 use self::protocols::NetworkProtocol;
@@ -25,6 +25,7 @@ pub struct Network {
     pub routing: NetworkProtocol,
     pub sending_flit_buffer: HashMap<ChannelId, FlitBuffer>,
     pub receiving_flit_buffer: HashMap<ChannelId, FlitBuffer>,
+    received_flits_buffer: ReceivedFlitsBuffer,
 }
 
 impl Network {
@@ -49,6 +50,7 @@ impl Network {
             routing,
             sending_flit_buffer,
             receiving_flit_buffer,
+            received_flits_buffer: ReceivedFlitsBuffer::new(),
         }
     }
 
@@ -86,6 +88,13 @@ impl Network {
                     .unwrap()
                     .push(flit);
             }
+
+            // ルーティングするフリットの処理
+            let channel_ids: Vec<ChannelId> = self.receiving_flit_buffer.keys().cloned().collect();
+            // receiving_flit_bufferからsending_flit_bufferへフリットを転送する
+            for channel_id in channel_ids {
+                self.forward_flits(channel_id);
+            }
         }
     }
 
@@ -95,51 +104,60 @@ impl Network {
             return;
         }
 
-        // receiving_flit_bufferのchannel_id番目のFlitBufferにpushする
-        self.receiving_flit_buffer
-            .get_mut(&channel_id)
-            .unwrap()
-            .push(flit.clone());
+        // 自分が最終的な宛先なら
+        if flit.get_dest_id().unwrap() == self.id || flit.get_dest_id().unwrap() == "broadcast" {
+            // received_flits_bufferにpushする
+            self.received_flits_buffer.push_flit(flit);
 
-        if let Flit::Tail(tail_flit) = flit {
-            if tail_flit.dest_id == "broadcast"
-                || get_vid(tail_flit.dest_id.clone()).unwrap() == self.routing.get_id()
-            {
-                // receiving_flit_bufferのchannel_id番目のFlitBufferからtail_flit.flit_num個のフリットを取り出す
-                let mut flits = Vec::new();
-                for _ in 0..tail_flit.flit_num {
-                    // todo 複数のdataフリットからなる場合，順番が正しく並べられるかを確かめるべき
-                    if let Some(flit) = self
-                        .receiving_flit_buffer
-                        .get_mut(&channel_id)
-                        .unwrap()
-                        .pop()
-                    {
-                        flits.push(flit);
-                    }
-                }
-
-                let data = flits_to_data(&flits);
-
-                let packet = GeneralPacket {
-                    data,
-                    source_id: tail_flit.source_id.clone(),
-                    dest_id: tail_flit.dest_id.clone(),
-                    next_id: tail_flit.next_id.clone(),
-                    prev_id: tail_flit.prev_id.clone(),
-                    packet_id: tail_flit.packet_id,
-                    channel_id: tail_flit.channel_id,
-                };
+            if flit.is_tail() {
+                let packet = self
+                    .received_flits_buffer
+                    .pop_packet(
+                        &flit.get_source_id().unwrap(),
+                        flit.get_packet_id().unwrap(),
+                    )
+                    .unwrap();
 
                 self.routing.receive_packet(&packet);
 
                 self.log_handler(&packet);
             }
+        } else {
+            // receiving_flit_bufferのchannel_id番目のFlitBufferにpushする
+            self.receiving_flit_buffer
+                .get_mut(&channel_id)
+                .unwrap()
+                .push(flit.clone());
         }
     }
 
     pub fn send_new_packet(&mut self, packet: &InjectionPacket) {
         self.routing.push_new_packet(packet);
+    }
+
+    pub fn forward_flits(&mut self, channel_id: ChannelId) {
+        // receiving_flit_bufferからsending_flit_bufferへフリットを転送する
+        while !self
+            .receiving_flit_buffer
+            .get(&channel_id)
+            .unwrap()
+            .is_empty()
+        {
+            let flit = self
+                .receiving_flit_buffer
+                .get_mut(&channel_id)
+                .unwrap()
+                .pop()
+                .unwrap();
+
+            let new_flit = self.routing.forward_flit(&flit);
+            let channel_id = new_flit.get_channel_id().unwrap();
+
+            self.sending_flit_buffer
+                .get_mut(&channel_id)
+                .unwrap()
+                .push(new_flit);
+        }
     }
 }
 
