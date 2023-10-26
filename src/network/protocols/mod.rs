@@ -1,7 +1,9 @@
 pub mod default;
 pub mod packets;
 
-use crate::{network::protocols::default::DefaultProtocol, sim::node_type::NodeType};
+use crate::{
+    network::flit::Flit, network::protocols::default::DefaultProtocol, sim::node_type::NodeType,
+};
 
 use self::packets::{GeneralPacket, InjectionPacket};
 
@@ -38,6 +40,12 @@ impl NetworkProtocol {
     pub(crate) fn receive_packet(&mut self, packet: &GeneralPacket) {
         match self {
             NetworkProtocol::DefaultFunction(rf) => rf.receive_packet(packet),
+        }
+    }
+
+    pub(crate) fn forward_flit(&mut self, flit: &Flit) -> Flit {
+        match self {
+            NetworkProtocol::DefaultFunction(rf) => rf.forward_flit(flit),
         }
     }
 
