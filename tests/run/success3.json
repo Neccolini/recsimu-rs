@@ -1,95 +1,33 @@
 {
-  "node_num": 10,
+  "node_num": 3,
+  "total_cycles": 100,
   "channel_num": 1,
   "nodes": [
     {
-      "node_id": "0",
+      "node_id": "node1",
       "node_type": "coordinator"
     },
     {
-      "node_id": "1",
+      "node_id": "node2",
       "node_type": "router"
     },
     {
-      "node_id": "2",
-      "node_type": "router"
-    },
-    {
-      "node_id": "3",
-      "node_type": "router"
-    },
-    {
-      "node_id": "4",
-      "node_type": "router"
-    },
-    {
-      "node_id": "5",
-      "node_type": "router"
-    },    
-    {
-      "node_id": "6",
-      "node_type": "router"
-    },
-    {
-      "node_id": "7",
-      "node_type": "router"
-    },
-    {
-      "node_id": "8",
-      "node_type": "router"
-    },
-    {
-      "node_id": "9",
+      "node_id": "node3",
       "node_type": "router"
     }
-
+  ],
+  "packets": [
   ],
   "neighbors": {
-    "0": [
-      "9",
-      "7",
-      "4"
+    "node1": [
+      "node2"
     ],
-    "1": [
-      "7",
-      "4"
+    "node2": [
+      "node1",
+      "node3"
     ],
-    "2": [
-      "4",
-      "3"
-    ],
-    "3": [
-      "8",
-      "2"
-    ],
-    "4": [
-      "0",
-      "1",
-      "2",
-      "8"
-    ],
-    "5": [
-      "9"
-    ],
-    "6": [
-      "7",
-      "9"
-    ],
-    "7": [
-      "6",
-      "1",
-      "0"
-    ],
-    "8": [
-      "4",
-      "3"
-    ],
-    "9": [
-      "6",
-      "0",
-      "5"
+    "node3": [
+      "node2"
     ]
-  },
-  "total_cycles": 10000,
-  "packets": []
+  }
 }

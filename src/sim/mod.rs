@@ -106,7 +106,7 @@ mod tests {
         let sim = sim_builder.build().unwrap();
 
         assert_eq!(sim.node_num, 2);
-        assert_eq!(sim.total_cycles, 10);
+        assert_eq!(sim.total_cycles, 50);
         assert_eq!(sim.vc_num, 1);
         assert_eq!(sim.cur_cycles, 0);
         assert_eq!(sim.debug, false);
@@ -114,9 +114,9 @@ mod tests {
         assert_eq!(sim.nodes.nodes[0].id, "node1");
         assert_eq!(sim.nodes.nodes[0].node_type, NodeType::Coordinator);
         assert_eq!(sim.nodes.nodes[0].packets.len(), 1);
-        assert_eq!(sim.nodes.nodes[0].packets[&10].source_id, "node1");
-        assert_eq!(sim.nodes.nodes[0].packets[&10].dest_id, "node2");
-        assert_eq!(sim.nodes.nodes[0].packets[&10].message, "Hello, World!");
+        assert_eq!(sim.nodes.nodes[0].packets[&40].source_id, "node1");
+        assert_eq!(sim.nodes.nodes[0].packets[&40].dest_id, "node2");
+        assert_eq!(sim.nodes.nodes[0].packets[&40].message, "Hello, World!");
         assert_eq!(sim.nodes.nodes[1].id, "node2");
         assert_eq!(sim.nodes.nodes[1].node_type, NodeType::Router);
         assert_eq!(sim.nodes.nodes[1].packets.len(), 0);
