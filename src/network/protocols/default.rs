@@ -1,4 +1,5 @@
 use super::packets::{GeneralPacket, InjectionPacket};
+use crate::network::flit::Flit;
 use crate::network::protocols::packets::DefaultPacket;
 use crate::network::vid::get_pid;
 use crate::network::vid::get_vid;
@@ -112,6 +113,27 @@ impl DefaultProtocol {
                 self.send_packet_buffer.push_back(packet);
             }
         }
+    }
+
+    pub fn forward_flit(&mut self, flit: &Flit) -> Flit {
+        let dest_vid = get_vid(flit.get_dest_id().unwrap()).unwrap();
+        let next_vid = self.next_node_id(dest_vid, flit.get_channel_id().unwrap());
+
+        let next_pid = get_pid(next_vid).unwrap();
+
+        let mut new_flit = flit.clone();
+
+        let _ = new_flit
+            .set_prev_id(flit.get_next_id().unwrap())
+            .map_err(|e| {
+                panic!("error occured while setting prev_id: {e:?}");
+            });
+
+        let _ = new_flit.set_next_id(next_pid).map_err(|e| {
+            panic!("error occured while setting next_id: {e:?}");
+        });
+
+        new_flit
     }
 }
 

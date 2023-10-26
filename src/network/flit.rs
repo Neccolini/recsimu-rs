@@ -1,6 +1,7 @@
 use crate::hardware::constants::DATA_BYTE_PER_FLIT;
 use crate::network::ChannelId;
 use crate::utils::div_ceil;
+use std::error;
 use uuid::Uuid;
 
 pub type PacketId = Uuid;
@@ -53,6 +54,44 @@ impl Flit {
 
     pub fn clear(&mut self) {
         *self = Flit::Empty;
+    }
+
+    pub fn set_next_id(&mut self, next_id: String) -> Result<(), Box<dyn error::Error>> {
+        match self {
+            Flit::Header(flit) => flit.next_id = next_id,
+            Flit::Data(flit) => flit.next_id = next_id,
+            Flit::Tail(flit) => flit.next_id = next_id,
+            Flit::Ack(flit) => flit.dest_id = next_id,
+            Flit::Empty => {
+                dbg!("flit is empty");
+                return Err("flit is empty".into());
+            }
+        }
+        Ok(())
+    }
+
+    pub fn set_prev_id(&mut self, prev_id: String) -> Result<(), Box<dyn error::Error>> {
+        match self {
+            Flit::Header(flit) => flit.prev_id = prev_id,
+            Flit::Data(flit) => flit.prev_id = prev_id,
+            Flit::Tail(flit) => flit.prev_id = prev_id,
+            Flit::Ack(flit) => flit.source_id = prev_id,
+            Flit::Empty => {
+                dbg!("flit is empty");
+                return Err("flit is empty".into());
+            }
+        }
+        Ok(())
+    }
+
+    pub fn get_source_id(&self) -> Option<NodeId> {
+        match self {
+            Flit::Header(flit) => Some(flit.source_id.clone()),
+            Flit::Data(flit) => Some(flit.source_id.clone()),
+            Flit::Tail(flit) => Some(flit.source_id.clone()),
+            Flit::Ack(flit) => Some(flit.source_id.clone()),
+            Flit::Empty => None,
+        }
     }
 
     pub fn get_prev_id(&self) -> Option<NodeId> {
