@@ -1,9 +1,43 @@
-use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::error;
 use std::sync::Mutex;
 
-static LOG: Lazy<Mutex<Log>> = Lazy::new(|| Mutex::new(Log::new()));
+cfg_if::cfg_if!(
+    if #[cfg(not(test))]
+    {
+        use once_cell::sync::Lazy;
+
+        static LOG: Lazy<Mutex<Log>> = Lazy::new(|| Mutex::new(Log::new()));
+    }
+    else {
+        use std::cell::Cell;
+        thread_local! {
+            static LOCAL_LOG: Cell<Option<&'static Mutex<Log>>> = Cell::new(None);
+        }
+
+        struct LogProxy;
+
+        impl std::ops::Deref for LogProxy {
+            type Target = Mutex<Log>;
+
+            #[inline]
+            fn deref (&self) -> &Self::Target {
+                LOCAL_LOG.with(|log| {
+                    if log.get().is_none() {
+                        let l = Mutex::new(Log::new());
+                        let b = Box::new(l);
+                        let static_ref = Box::leak(b);
+                        log.set(Some(static_ref));
+                    }
+                    log.get().unwrap()
+                }
+            )
+            }
+        }
+
+        static LOG: LogProxy = LogProxy;
+    }
+);
 
 #[derive(Debug, Clone, Default)]
 pub struct Log {

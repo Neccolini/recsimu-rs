@@ -62,7 +62,7 @@ impl Nodes {
                 _ => {}
             }
         }
-
+        dbg!(self.flit_buffers.clone());
         // バッファにあるメッセージを受信
         for node in self.nodes.iter_mut() {
             // todo nodeに切り出す
@@ -82,8 +82,16 @@ impl Nodes {
                     // 状態を受信中に変更
                     let _ = node.receive_flit(flit);
                 }
+            } else {
+                eprintln!("collision occured at {}", node.id);
             }
         }
+        dbg!(_cur_cycle);
+        // node全ての状態をprint
+        for node in self.nodes.iter() {
+            println!("node: {}, state: {:?}", node.id, node.hardware.state.get());
+        }
+
         // flit_buffersをクリア
         self.flit_buffers.clear();
     }
@@ -104,11 +112,14 @@ impl Nodes {
 mod tests {
     use super::*;
     use crate::network::protocols::packets::InjectionPacket;
+    use crate::network::vid::add_to_vid_table;
     use crate::sim::NodeType;
 
     #[test]
     fn test_run_cycle() {
         // node1からnode2へのパケットを作成
+        add_to_vid_table(u32::MAX, "broadcast".to_string());
+
         let packets: HashMap<u32, InjectionPacket> = HashMap::new();
 
         let mut neighbors = HashMap::new();

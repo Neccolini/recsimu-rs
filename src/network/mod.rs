@@ -107,14 +107,16 @@ impl Network {
             {
                 // receiving_flit_bufferのchannel_id番目のFlitBufferからtail_flit.flit_num個のフリットを取り出す
                 let mut flits = Vec::new();
-                for _ in 1..tail_flit.flit_num {
-                    flits.push(
-                        self.receiving_flit_buffer
-                            .get_mut(&channel_id)
-                            .unwrap()
-                            .pop()
-                            .unwrap(),
-                    );
+                for _ in 0..tail_flit.flit_num {
+                    // todo 複数のdataフリットからなる場合，順番が正しく並べられるかを確かめるべき
+                    if let Some(flit) = self
+                        .receiving_flit_buffer
+                        .get_mut(&channel_id)
+                        .unwrap()
+                        .pop()
+                    {
+                        flits.push(flit);
+                    }
                 }
 
                 let data = flits_to_data(&flits);
