@@ -19,13 +19,14 @@ impl Nodes {
         }
     }
     pub fn run_cycle(&mut self, cur_cycle: u32) {
+        dbg!(cur_cycle);
         // 各ノードの状態を更新する
         self.update_nodes(cur_cycle);
 
         // 各ノードのメッセージを処理する
         self.message_handle(cur_cycle);
     }
-    fn message_handle(&mut self, _cur_cycle: u32) {
+    fn message_handle(&mut self, cur_cycle: u32) {
         // 送信状態のノードはflitを送信
         for node in self.nodes.iter_mut() {
             // todo 後でnodeに切り出す
@@ -52,17 +53,18 @@ impl Nodes {
                 }
                 State::ReplyAck => {
                     let ack = node.send_ack().unwrap();
-
-                    // flit_buffersに追加
-                    if let Some(receiver_id) = ack.get_dest_id() {
-                        let buffer = self.flit_buffers.entry(receiver_id).or_default();
-                        buffer.push(ack);
+                    if ack.is_ack() {
+                        // flit_buffersに追加
+                        if let Some(receiver_id) = ack.get_dest_id() {
+                            let buffer = self.flit_buffers.entry(receiver_id).or_default();
+                            buffer.push(ack);
+                        }
                     }
                 }
                 _ => {}
             }
         }
-        dbg!(self.flit_buffers.clone());
+
         // バッファにあるメッセージを受信
         for node in self.nodes.iter_mut() {
             // todo nodeに切り出す
@@ -80,13 +82,18 @@ impl Nodes {
 
                 if let State::Idle | State::Waiting(_) = node.hardware.state.get() {
                     // 状態を受信中に変更
-                    let _ = node.receive_flit(flit);
+                    let _ = node.receive_flit(flit).map_err(|e| {
+                        panic!(
+                            "node: {}, cur_cycle: {} receive_flit error: {:?}",
+                            node.id, cur_cycle, e
+                        );
+                    });
                 }
             } else {
                 eprintln!("collision occured at {}", node.id);
             }
         }
-        dbg!(_cur_cycle);
+
         // node全ての状態をprint
         for node in self.nodes.iter() {
             println!("node: {}, state: {:?}", node.id, node.hardware.state.get());
