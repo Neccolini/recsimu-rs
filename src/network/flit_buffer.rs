@@ -104,6 +104,8 @@ impl ReceivedFlitsBuffer {
 
         let data = flits_to_data(&flits);
 
+        self.buffer.get_mut(&key).unwrap().clear();
+
         Some(GeneralPacket {
             data,
             source_id: tail_flit.get_source_id().unwrap(),
@@ -134,6 +136,7 @@ mod tests {
             source_id: "".to_string(),
             prev_id: "".to_string(),
             next_id: "".to_string(),
+            data: vec![],
             flits_len: 0,
         });
         flit_buffer.push(flit0.clone());
@@ -145,6 +148,7 @@ mod tests {
             source_id: "".to_string(),
             prev_id: "".to_string(),
             next_id: "".to_string(),
+            data: vec![],
             flits_len: 0,
         });
         flit_buffer.push(flit1.clone());
@@ -156,6 +160,7 @@ mod tests {
             source_id: "".to_string(),
             prev_id: "".to_string(),
             next_id: "".to_string(),
+            data: vec![],
             flits_len: 0,
         });
 
@@ -179,6 +184,7 @@ mod tests {
             source_id: "".to_string(),
             prev_id: "".to_string(),
             next_id: "".to_string(),
+            data: vec![],
             flits_len: 0,
         });
         flit_buffer.push(header_flit.clone());

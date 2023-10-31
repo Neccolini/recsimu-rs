@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+use crate::network::vid::get_vid;
 #[derive(Debug, Clone)]
 pub struct GeneralPacket {
     pub data: Vec<u8>,
@@ -33,11 +34,16 @@ pub(crate) struct DefaultPacket {
 impl DefaultPacket {
     pub(crate) fn from_general(gp: &GeneralPacket) -> Self {
         // dataをでコード
-        bincode::deserialize::<DefaultPacket>(gp.data.as_slice())
+        let mut dp = bincode::deserialize::<DefaultPacket>(gp.data.as_slice())
             .map_err(|e| {
                 panic!("error occured while serializing a packet: {e:?}");
             })
-            .unwrap()
+            .unwrap();
+
+        dp.prev_id = get_vid(gp.prev_id.clone()).unwrap();
+        dp.next_id = get_vid(gp.next_id.clone()).unwrap();
+
+        dp
     }
 }
 

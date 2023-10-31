@@ -88,13 +88,12 @@ impl Network {
                     .unwrap()
                     .push(flit);
             }
-
-            // ルーティングするフリットの処理
-            let channel_ids: Vec<ChannelId> = self.receiving_flit_buffer.keys().cloned().collect();
-            // receiving_flit_bufferからsending_flit_bufferへフリットを転送する
-            for channel_id in channel_ids {
-                self.forward_flits(channel_id);
-            }
+        }
+        // ルーティングするフリットの処理
+        let channel_ids: Vec<ChannelId> = self.receiving_flit_buffer.keys().cloned().collect();
+        // receiving_flit_bufferからsending_flit_bufferへフリットを転送する
+        for channel_id in channel_ids {
+            self.forward_flits(channel_id);
         }
     }
 
@@ -122,7 +121,7 @@ impl Network {
 
                 self.log_handler(&packet);
             }
-        } else {
+        } else if flit.get_next_id().unwrap() == self.id {
             // receiving_flit_bufferのchannel_id番目のFlitBufferにpushする
             self.receiving_flit_buffer
                 .get_mut(&channel_id)
@@ -137,19 +136,12 @@ impl Network {
 
     pub fn forward_flits(&mut self, channel_id: ChannelId) {
         // receiving_flit_bufferからsending_flit_bufferへフリットを転送する
-        while !self
+        if let Some(flit) = self
             .receiving_flit_buffer
-            .get(&channel_id)
+            .get_mut(&channel_id)
             .unwrap()
-            .is_empty()
+            .pop()
         {
-            let flit = self
-                .receiving_flit_buffer
-                .get_mut(&channel_id)
-                .unwrap()
-                .pop()
-                .unwrap();
-
             let new_flit = self.routing.forward_flit(&flit);
             let channel_id = new_flit.get_channel_id().unwrap();
 
@@ -235,6 +227,7 @@ mod tests {
                 next_id: "broadcast".to_string(),
                 prev_id: "test".to_string(),
                 flits_len: 2,
+                data: vec![],
                 channel_id: 0,
             })
         );

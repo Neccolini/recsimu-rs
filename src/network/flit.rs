@@ -163,6 +163,7 @@ pub struct HeaderFlit {
     pub prev_id: NodeId,
     pub packet_id: u32,
     pub flits_len: u32,
+    pub data: Vec<u8>,
     pub channel_id: ChannelId,
 }
 
@@ -213,40 +214,40 @@ pub fn data_to_flits(
     let mut flits = Vec::new();
     let flits_len = div_ceil(data.len() as u32, DATA_BYTE_PER_FLIT) + 1;
 
-    // header flit
-    flits.push(Flit::Header(HeaderFlit {
-        source_id: source_id.clone(),
-        dest_id: dest_id.clone(),
-        next_id: next_id.clone(),
-        prev_id: prev_id.clone(),
-        packet_id,
-        flits_len,
-        channel_id,
-    }));
-
     // DATA_BYTE_PER_FLITでdataを分割する
     for (flit_num, data_chunk) in data.chunks(DATA_BYTE_PER_FLIT as usize).enumerate() {
-        // 最後はtail flit
         if flit_num == flits_len as usize - 2 {
             flits.push(Flit::Tail(TailFlit {
                 source_id,
                 dest_id,
                 next_id,
                 prev_id,
-                flit_num: flit_num as u32 + 2,
+                flit_num: flit_num as u32 + 1,
                 resend_num: 0,
                 data: data_chunk.to_vec(),
                 packet_id,
                 channel_id,
             }));
             break;
+        } else if flit_num == 0 {
+            flits.push(Flit::Header(HeaderFlit {
+                source_id: source_id.clone(),
+                dest_id: dest_id.clone(),
+                next_id: next_id.clone(),
+                prev_id: prev_id.clone(),
+                packet_id,
+                data: data_chunk.to_vec(),
+                flits_len,
+                channel_id,
+            }));
+            continue;
         }
         flits.push(Flit::Data(DataFlit {
             source_id: source_id.clone(),
             dest_id: dest_id.clone(),
             next_id: next_id.clone(),
             prev_id: prev_id.clone(),
-            flit_num: flit_num as u32 + 2,
+            flit_num: flit_num as u32 + 1,
             resend_num: 0,
             data: data_chunk.to_vec(),
             packet_id,

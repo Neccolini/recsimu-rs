@@ -45,6 +45,10 @@ impl Node {
         if x.is_empty() {
             return Err("retransmission_buffer is empty".into());
         }
+
+        if x.is_broadcast() {
+            self.hardware.retransmission_buffer.clear();
+        }
         Ok(x)
     }
 
