@@ -7,6 +7,7 @@ use crate::sim::node_type::NodeType;
 use rand::Rng;
 use std::collections::{HashMap, VecDeque};
 const BROADCAST_ID: u32 = u32::MAX;
+const COORDINATOR_ID: u32 = 0;
 
 #[derive(Clone, Debug)]
 #[allow(dead_code)]
@@ -69,7 +70,7 @@ impl DefaultProtocol {
         let next_vid = self.next_node_id(dest_vid, channel_id);
 
         let default_packet = self.gen_packet(self.id, dest_vid, next_vid, packet.message.clone());
-        dbg!(default_packet.clone());
+
         self.send_packet_buffer.push_back(default_packet);
         self.packet_num_cnt += 1;
     }
@@ -106,6 +107,21 @@ impl DefaultProtocol {
     }
 
     pub fn update(&mut self) {
+        // ランダムな確率でpackを送信
+        let mut rng = rand::thread_rng();
+        let p: f64 = rng.gen();
+        if self.parent_id.is_none() && self.node_type == NodeType::Router && p < 0.1 {
+            self.send_packet_buffer.push_back(DefaultPacket {
+                message: "preq".to_string(),
+                packet_id: u32::MAX, // todo
+                dest_id: BROADCAST_ID,
+                source_id: self.id,
+                prev_id: self.id,
+                channel_id: 0,
+                next_id: BROADCAST_ID,
+            });
+        }
+
         // received_packet_bufferをすべて処理
         while let Some(packet) = self.received_packet_buffer.pop_front() {
             let reply = self.process_received_packet(&packet);
@@ -118,6 +134,11 @@ impl DefaultProtocol {
     pub fn forward_flit(&mut self, flit: &Flit) -> Flit {
         let dest_vid = get_vid(flit.get_dest_id().unwrap()).unwrap();
         let next_vid = self.next_node_id(dest_vid, flit.get_channel_id().unwrap());
+
+        let source_vid = get_vid(flit.get_source_id().unwrap()).unwrap();
+        let prev_vid = get_vid(flit.get_prev_id().unwrap()).unwrap();
+
+        self.update_table(source_vid, prev_vid);
 
         let next_pid = get_pid(next_vid).unwrap();
 
@@ -346,7 +367,7 @@ impl DefaultProtocol {
                 // jreqを送信
                 let packet = self.gen_packet(
                     self.id,
-                    packet.source_id,
+                    COORDINATOR_ID,
                     packet.source_id,
                     "jreq".to_string(),
                 );
