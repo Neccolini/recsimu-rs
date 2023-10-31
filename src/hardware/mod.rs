@@ -14,7 +14,6 @@ pub struct Hardware {
     pub ack_buffer: Flit,
     received_msg_is_broadcast: bool,
     received_msg_is_ack: bool,
-    receiving_packet_info: ReceivingPacketInfo, // node_id, packet_id, flit_num
 }
 
 impl Hardware {
@@ -26,7 +25,6 @@ impl Hardware {
             ack_buffer: Flit::default(),
             received_msg_is_broadcast: false,
             received_msg_is_ack: false,
-            receiving_packet_info: ReceivingPacketInfo::default(),
         }
     }
 }
@@ -40,15 +38,14 @@ impl Hardware {
 
     pub fn send_ack(&mut self) -> Result<Flit, Box<dyn std::error::Error>> {
         let ack = self.ack_buffer.clone();
-        assert!(
-            ack.is_ack(),
-            "send_ack: flit in the buffer is not ack flit: {0:?}",
-            ack
-        );
 
-        self.ack_buffer.clear();
+        if ack.is_ack() {
+            self.ack_buffer.clear();
 
-        Ok(ack)
+            return Ok(ack);
+        }
+
+        Ok(Flit::default())
     }
 
     pub fn receive_flit(
@@ -65,41 +62,18 @@ impl Hardware {
             self.received_msg_is_broadcast = next_id == "broadcast";
         }
 
-        if !self.receiving_packet_info.is_none {
-            // 受信中のパケットでない場合は破棄
-            let Some(prev_id) = flit.get_prev_id() else {
-                panic!("received packet is empty");
-            };
-            let Some(flit_num) = flit.get_packet_id() else {
-                panic!("received packet is empty");
-            };
-
-            if self.receiving_packet_info.node_id != prev_id
-                || flit_num != self.receiving_packet_info.packet_id
-            {
-                self.set_state(&State::Idle);
-                return Ok(None);
-            }
-        }
-
         match flit {
-            Flit::Header(header_flit) => {
+            Flit::Header(_) => {
                 let _ack = self.ack_gen(flit)?;
 
                 self.received_msg_is_ack = false;
-
-                self.receiving_packet_info =
-                    ReceivingPacketInfo::new(header_flit.prev_id.clone(), header_flit.packet_id);
 
                 Ok(Some(flit.clone()))
             }
-            Flit::Data(data_flit) => {
+            Flit::Data(_) => {
                 let _ack = self.ack_gen(flit)?;
 
                 self.received_msg_is_ack = false;
-
-                self.receiving_packet_info
-                    .update_flit_num(data_flit.flit_num);
 
                 Ok(Some(flit.clone()))
             }
@@ -107,8 +81,6 @@ impl Hardware {
                 let _ack = self.ack_gen(flit)?;
 
                 self.received_msg_is_ack = false;
-
-                self.receiving_packet_info.clear(); // 受信終了なのでリセット
 
                 Ok(Some(flit.clone()))
             }
@@ -198,51 +170,27 @@ impl Hardware {
         }
 
         // flitの中身を取り出す
-        let (rcv_source_id, rcv_dest_id, rcv_packet_id, flit_num, channel_id) = match flit {
-            Flit::Header(header_flit) => {
-                let header_flit = header_flit.clone();
-                (
-                    header_flit.source_id,
-                    header_flit.dest_id,
-                    header_flit.packet_id,
-                    0,
-                    header_flit.channel_id,
-                )
-            }
-            Flit::Data(data_flit) => {
-                let data_flit = data_flit.clone();
-                (
-                    data_flit.source_id,
-                    data_flit.dest_id,
-                    data_flit.packet_id,
-                    data_flit.flit_num,
-                    data_flit.channel_id,
-                )
-            }
-            Flit::Tail(tail_flit) => {
-                let tail_flit = tail_flit.clone();
-                (
-                    tail_flit.source_id,
-                    tail_flit.dest_id,
-                    tail_flit.packet_id,
-                    tail_flit.flit_num,
-                    tail_flit.channel_id,
-                )
-            }
-            _ => {
-                panic!("ack_gen: flit is not header or data");
-            }
-        };
+        let (prev_id, next_id, packet_id, flit_num, channel_id) = (
+            flit.get_prev_id().unwrap(),
+            flit.get_next_id().unwrap(),
+            flit.get_packet_id().unwrap(),
+            flit.get_flit_num().unwrap(),
+            flit.get_channel_id().unwrap(),
+        );
 
-        self.ack_buffer = Flit::Ack(AckFlit {
-            source_id: rcv_dest_id,
-            dest_id: rcv_source_id,
-            packet_id: rcv_packet_id,
-            flit_num,
-            channel_id,
-        });
+        if next_id == self.id {
+            self.ack_buffer = Flit::Ack(AckFlit {
+                source_id: next_id,
+                dest_id: prev_id,
+                packet_id,
+                flit_num,
+                channel_id,
+            });
 
-        Ok(self.ack_buffer.clone())
+            return Ok(self.ack_buffer.clone());
+        }
+
+        Ok(Flit::default())
     }
 
     fn receive_ack(&mut self, flit: &Flit) -> Result<Flit, Box<dyn std::error::Error>> {
@@ -250,41 +198,15 @@ impl Hardware {
         if let Flit::Ack(ack_flit) = flit {
             let ack_flit = ack_flit.clone();
 
-            let (src_id, dest_id, packet_id, flit_num) = match &self.retransmission_buffer {
-                Flit::Header(header_flit) => {
-                    let header_flit = header_flit.clone();
-                    (
-                        header_flit.source_id,
-                        header_flit.dest_id,
-                        header_flit.packet_id,
-                        0,
-                    )
-                }
-                Flit::Data(data_flit) => {
-                    let data_flit = data_flit.clone();
-                    (
-                        data_flit.source_id,
-                        data_flit.dest_id,
-                        data_flit.packet_id,
-                        data_flit.flit_num,
-                    )
-                }
-                Flit::Tail(tail_flit) => {
-                    let tail_flit = tail_flit.clone();
-                    (
-                        tail_flit.source_id,
-                        tail_flit.dest_id,
-                        tail_flit.packet_id,
-                        tail_flit.flit_num,
-                    )
-                }
-                _ => {
-                    panic!("receive_ack: retransmission_buffer is not header or data");
-                }
-            };
+            let (prev_id, next_id, packet_id, flit_num) = (
+                self.retransmission_buffer.get_prev_id().unwrap(),
+                self.retransmission_buffer.get_next_id().unwrap(),
+                self.retransmission_buffer.get_packet_id().unwrap(),
+                self.retransmission_buffer.get_flit_num().unwrap(),
+            );
 
-            if ack_flit.dest_id == src_id
-                && ack_flit.source_id == dest_id
+            if ack_flit.dest_id == prev_id
+                && ack_flit.source_id == next_id
                 && ack_flit.packet_id == packet_id
                 && ack_flit.flit_num == flit_num
             {
@@ -319,46 +241,6 @@ impl Hardware {
         let random_backoff = rng.gen_range(begin..end) as u32;
 
         constants::WAIT_ACK_CYCLES + random_backoff
-    }
-}
-
-#[derive(Debug, Clone)]
-struct ReceivingPacketInfo {
-    node_id: String,
-    packet_id: u32,
-    flit_num: u32,
-    is_none: bool,
-}
-
-impl Default for ReceivingPacketInfo {
-    fn default() -> Self {
-        ReceivingPacketInfo {
-            node_id: String::default(),
-            packet_id: 0,
-            flit_num: u32::MAX,
-            is_none: true,
-        }
-    }
-}
-
-impl ReceivingPacketInfo {
-    fn new(node_id: String, packet_id: u32) -> Self {
-        Self {
-            node_id,
-            packet_id,
-            flit_num: 0,
-            is_none: false,
-        }
-    }
-    fn update_flit_num(&mut self, flit_num: u32) {
-        self.flit_num = flit_num;
-    }
-
-    fn clear(&mut self) {
-        self.node_id = String::default();
-        self.packet_id = 0;
-        self.flit_num = 0;
-        self.is_none = true;
     }
 }
 
