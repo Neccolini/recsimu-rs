@@ -153,6 +153,16 @@ impl Flit {
             Flit::Empty => None,
         }
     }
+
+    pub fn get_flits_len(&self) -> Option<u32> {
+        match self {
+            Flit::Header(flit) => Some(flit.flits_len),
+            Flit::Data(_) => None,
+            Flit::Tail(_) => None,
+            Flit::Ack(_) => None,
+            Flit::Empty => None,
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -212,11 +222,23 @@ pub fn data_to_flits(
     channel_id: ChannelId,
 ) -> Vec<Flit> {
     let mut flits = Vec::new();
-    let flits_len = div_ceil(data.len() as u32, DATA_BYTE_PER_FLIT) + 1;
+    let flits_len = div_ceil(data.len() as u32, DATA_BYTE_PER_FLIT);
 
     // DATA_BYTE_PER_FLITでdataを分割する
     for (flit_num, data_chunk) in data.chunks(DATA_BYTE_PER_FLIT as usize).enumerate() {
-        if flit_num == flits_len as usize - 2 {
+        if flit_num == 0 {
+            flits.push(Flit::Header(HeaderFlit {
+                source_id: source_id.clone(),
+                dest_id: dest_id.clone(),
+                next_id: next_id.clone(),
+                prev_id: prev_id.clone(),
+                packet_id,
+                data: data_chunk.to_vec(),
+                flits_len,
+                channel_id,
+            }));
+            continue;
+        } else if flit_num == flits_len as usize - 1 {
             flits.push(Flit::Tail(TailFlit {
                 source_id,
                 dest_id,
@@ -229,18 +251,6 @@ pub fn data_to_flits(
                 channel_id,
             }));
             break;
-        } else if flit_num == 0 {
-            flits.push(Flit::Header(HeaderFlit {
-                source_id: source_id.clone(),
-                dest_id: dest_id.clone(),
-                next_id: next_id.clone(),
-                prev_id: prev_id.clone(),
-                packet_id,
-                data: data_chunk.to_vec(),
-                flits_len,
-                channel_id,
-            }));
-            continue;
         }
         flits.push(Flit::Data(DataFlit {
             source_id: source_id.clone(),
@@ -261,6 +271,7 @@ pub fn flits_to_data(flits: &Vec<Flit>) -> Vec<u8> {
     let mut data = Vec::new();
     for flit in flits {
         match flit {
+            Flit::Header(flit) => data.extend_from_slice(&flit.data),
             Flit::Data(flit) => data.extend_from_slice(&flit.data),
             Flit::Tail(flit) => data.extend_from_slice(&flit.data),
             _ => {}
@@ -298,10 +309,9 @@ mod tests {
                 assert!(flits[2].is_data());
             }
             64 => {
-                assert_eq!(flits.len(), 3);
+                assert_eq!(flits.len(), 2);
                 assert!(flits[0].is_header());
-                assert!(flits[1].is_data());
-                assert!(flits[2].is_tail());
+                assert!(flits[1].is_tail());
             }
             _ => {
                 dbg!(flits.len());
