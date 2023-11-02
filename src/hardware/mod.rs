@@ -74,21 +74,21 @@ impl Hardware {
 
         match flit {
             Flit::Header(_) => {
-                let _ack = self.ack_gen(flit)?;
+                let _ack = self.gen_ack(flit)?;
 
                 self.received_msg_is_ack = false;
 
                 Ok(Some(flit.clone()))
             }
             Flit::Data(_) => {
-                let _ack = self.ack_gen(flit)?;
+                let _ack = self.gen_ack(flit)?;
 
                 self.received_msg_is_ack = false;
 
                 Ok(Some(flit.clone()))
             }
             Flit::Tail(_) => {
-                let _ack = self.ack_gen(flit)?;
+                let _ack = self.gen_ack(flit)?;
 
                 self.received_msg_is_ack = false;
 
@@ -174,9 +174,9 @@ impl Hardware {
 
 // 外部に公開しない関数
 impl Hardware {
-    fn ack_gen(&mut self, flit: &Flit) -> Result<Flit, Box<dyn std::error::Error>> {
+    fn gen_ack(&mut self, flit: &Flit) -> Result<Flit, Box<dyn std::error::Error>> {
         if let Flit::Ack(_) = flit {
-            return Err("ack_gen: flit is ack".into());
+            return Err("gen_ack: flit is ack".into());
         }
 
         // flitの中身を取り出す
