@@ -1,3 +1,4 @@
+mod blocking;
 pub(crate) mod constants;
 pub mod state;
 
@@ -14,6 +15,7 @@ pub struct Hardware {
     pub ack_buffer: Flit,
     received_msg_is_broadcast: bool,
     received_msg_is_ack: bool,
+    blocking: blocking::Blocking,
 }
 
 impl Hardware {
@@ -25,6 +27,7 @@ impl Hardware {
             ack_buffer: Flit::default(),
             received_msg_is_broadcast: false,
             received_msg_is_ack: false,
+            blocking: blocking::Blocking::default(),
         }
     }
 }
@@ -60,6 +63,10 @@ impl Hardware {
             }
 
             self.received_msg_is_broadcast = next_id == "broadcast";
+        }
+
+        if self.blocking.check_received_flit(flit) == blocking::BLOCK_FLIT {
+            return Ok(None);
         }
 
         match flit {
