@@ -108,7 +108,7 @@ impl Network {
             // received_flits_bufferにpushする
             self.received_flits_buffer.push_flit(flit);
 
-            if flit.is_tail() {
+            if flit.is_tail() || (flit.is_header() && flit.get_flits_len().unwrap_or(0) == 1) {
                 let packet = self
                     .received_flits_buffer
                     .pop_packet(
@@ -192,7 +192,6 @@ impl Network {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::network::flit::HeaderFlit;
     use crate::network::protocols::packets::InjectionPacket;
 
     #[test]
@@ -214,36 +213,16 @@ mod tests {
 
         // preq
         network.send_flit(0).unwrap();
-        network.send_flit(0).unwrap();
 
         network.update(1);
         let flit = network.send_flit(0).unwrap();
-        assert_eq!(
-            flit,
-            Flit::Header(HeaderFlit {
-                source_id: "test".to_string(),
-                dest_id: "broadcast".to_string(),
-                packet_id: 0,
-                next_id: "broadcast".to_string(),
-                prev_id: "test".to_string(),
-                flits_len: 2,
-                data: vec![],
-                channel_id: 0,
-            })
-        );
 
-        network.update(2);
-        let flit = network.send_flit(0).unwrap();
-        match flit {
-            Flit::Tail(tail_flit) => {
-                assert_eq!(tail_flit.dest_id, "broadcast".to_string());
-                assert_eq!(tail_flit.source_id, "test".to_string());
-                assert_eq!(tail_flit.packet_id, 0);
-                assert_eq!(tail_flit.next_id, "broadcast".to_string());
-                assert_eq!(tail_flit.flit_num, 2);
-                assert_eq!(tail_flit.channel_id, 0);
-            }
-            _ => panic!(),
-        }
+        assert_eq!(flit.get_source_id().unwrap(), "test".to_string());
+        assert_eq!(flit.get_dest_id().unwrap(), "broadcast".to_string());
+        assert_eq!(flit.get_packet_id().unwrap(), 0);
+        assert_eq!(flit.get_next_id().unwrap(), "broadcast".to_string());
+        assert_eq!(flit.get_prev_id().unwrap(), "test".to_string());
+        assert_eq!(flit.get_flits_len().unwrap(), 1);
+        assert_eq!(flit.get_channel_id().unwrap(), 0);
     }
 }

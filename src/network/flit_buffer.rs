@@ -100,7 +100,7 @@ impl ReceivedFlitsBuffer {
             .into();
 
         let tail_flit = flits.last().unwrap();
-        assert!(tail_flit.is_tail());
+        assert!(tail_flit.is_tail() || (tail_flit.is_header() && flits.len() == 1));
 
         let data = flits_to_data(&flits);
 
