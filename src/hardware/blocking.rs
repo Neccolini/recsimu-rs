@@ -38,7 +38,7 @@ impl Blocking {
                     self.receiving_packet_id = flit.get_packet_id().unwrap();
                     self.cur_flit_num = 0;
                 }
-                return RECEIVE_FLIT;
+                RECEIVE_FLIT
             }
             Flit::Data(data_flit) => {
                 if self.is_receiving {
@@ -54,7 +54,7 @@ impl Blocking {
                         return RECEIVE_FLIT;
                     }
                 }
-                return BLOCK_FLIT;
+                BLOCK_FLIT
             }
             Flit::Tail(tail_flit) => {
                 if self.is_receiving {
@@ -70,14 +70,14 @@ impl Blocking {
                         return RECEIVE_FLIT;
                     }
                 }
-                return BLOCK_FLIT;
+                BLOCK_FLIT
             }
             Flit::Ack(_) => {
                 // ほかのパケットを受信中ならブロックする
                 if self.is_receiving {
                     return BLOCK_FLIT;
                 }
-                return RECEIVE_FLIT;
+                RECEIVE_FLIT
             }
             Flit::Empty => BLOCK_FLIT,
         }
