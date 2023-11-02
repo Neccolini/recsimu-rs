@@ -73,21 +73,7 @@ impl Hardware {
         }
 
         match flit {
-            Flit::Header(_) => {
-                let _ack = self.gen_ack(flit)?;
-
-                self.received_msg_is_ack = false;
-
-                Ok(Some(flit.clone()))
-            }
-            Flit::Data(_) => {
-                let _ack = self.gen_ack(flit)?;
-
-                self.received_msg_is_ack = false;
-
-                Ok(Some(flit.clone()))
-            }
-            Flit::Tail(_) => {
+            Flit::Header(_) | Flit::Data(_) | Flit::Tail(_) => {
                 let _ack = self.gen_ack(flit)?;
 
                 self.received_msg_is_ack = false;
