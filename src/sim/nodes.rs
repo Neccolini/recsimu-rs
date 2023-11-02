@@ -118,6 +118,7 @@ impl Nodes {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::hardware::switching::Switching;
     use crate::network::protocols::packets::InjectionPacket;
     use crate::network::vid::add_to_vid_table;
     use crate::sim::NodeType;
@@ -138,6 +139,7 @@ mod tests {
                 Node::new(
                     "node1".to_string(),
                     1,
+                    Switching::StoreAndForward,
                     "default".to_string(),
                     NodeType::Coordinator,
                     packets,
@@ -145,6 +147,7 @@ mod tests {
                 Node::new(
                     "node2".to_string(),
                     1,
+                    Switching::StoreAndForward,
                     "default".to_string(),
                     NodeType::Router,
                     HashMap::new(),

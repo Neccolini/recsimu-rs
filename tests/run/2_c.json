@@ -2,6 +2,7 @@
   "node_num": 3,
   "total_cycles": 100,
   "channel_num": 1,
+  "switching": "cut_through",
   "nodes": [
     {
       "node_id": "node1",

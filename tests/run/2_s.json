@@ -1,7 +1,8 @@
 {
-  "node_num": 2,
-  "total_cycles": 50,
+  "node_num": 3,
+  "total_cycles": 100,
   "channel_num": 1,
+  "switching": "store_and_forward",
   "nodes": [
     {
       "node_id": "node1",
@@ -10,21 +11,23 @@
     {
       "node_id": "node2",
       "node_type": "router"
+    },
+    {
+      "node_id": "node3",
+      "node_type": "router"
     }
   ],
   "packets": [
-    {
-      "cycle_num": 40,
-      "src_id": "node1",
-      "dest_id": "node2",
-      "msg": "Hello, World!"
-    }
   ],
   "neighbors": {
     "node1": [
-      "node2"
+      "node2",
+      "node3"
     ],
     "node2": [
+      "node1"
+    ],
+    "node3": [
       "node1"
     ]
   }

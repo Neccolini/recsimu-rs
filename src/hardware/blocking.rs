@@ -1,10 +1,12 @@
 use crate::network::flit::Flit;
 
+use super::switching::Switching;
+
 pub const BLOCK_FLIT: bool = false;
 pub const RECEIVE_FLIT: bool = true;
 
 pub struct Blocking {
-    is_block_mode: bool,
+    switching: Switching,
     is_receiving: bool,
     receiving_packet_next_id: String,
     receiving_packet_id: u32,
@@ -12,9 +14,9 @@ pub struct Blocking {
 }
 
 impl Blocking {
-    pub fn new(is_block_mode: bool) -> Self {
+    pub fn new(switching: Switching) -> Self {
         Self {
-            is_block_mode,
+            switching,
             is_receiving: false,
             receiving_packet_next_id: "".to_string(),
             receiving_packet_id: 0,
@@ -23,7 +25,7 @@ impl Blocking {
     }
 
     pub fn check_received_flit(&mut self, flit: &Flit) -> bool {
-        if !self.is_block_mode {
+        if !self.is_block_mode() {
             return RECEIVE_FLIT;
         }
 
@@ -89,10 +91,89 @@ impl Blocking {
         self.receiving_packet_id = 0;
         self.cur_flit_num = 0;
     }
+
+    fn is_block_mode(&self) -> bool {
+        match self.switching {
+            Switching::CutThrough => false,
+            Switching::StoreAndForward => true,
+        }
+    }
 }
 
 impl Default for Blocking {
     fn default() -> Self {
-        Self::new(false)
+        Self::new(Switching::StoreAndForward)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::network::flit::{AckFlit, DataFlit, HeaderFlit, TailFlit};
+
+    #[test]
+    fn test_check_received_flit() {
+        let mut blocking = Blocking::new(Switching::StoreAndForward);
+
+        let header_flit = Flit::Header(HeaderFlit {
+            source_id: "0".to_string(),
+            dest_id: "1".to_string(),
+            next_id: "1".to_string(),
+            prev_id: "0".to_string(),
+            packet_id: 0,
+            flits_len: 3,
+            channel_id: 0,
+            data: vec![0; 64],
+        });
+
+        let data_flit = Flit::Data(DataFlit {
+            source_id: "0".to_string(),
+            dest_id: "1".to_string(),
+            next_id: "1".to_string(),
+            prev_id: "0".to_string(),
+            packet_id: 0,
+            flit_num: 1,
+            resend_num: 0,
+            channel_id: 0,
+            data: vec![0; 64],
+        });
+
+        let block_data_flit = Flit::Data(DataFlit {
+            source_id: "5".to_string(),
+            dest_id: "1".to_string(),
+            next_id: "1".to_string(),
+            prev_id: "0".to_string(),
+            packet_id: 1,
+            flit_num: 1,
+            resend_num: 0,
+            channel_id: 0,
+            data: vec![0; 64],
+        });
+
+        let tail_flit = Flit::Tail(TailFlit {
+            source_id: "0".to_string(),
+            dest_id: "1".to_string(),
+            next_id: "1".to_string(),
+            prev_id: "0".to_string(),
+            packet_id: 0,
+            flit_num: 2,
+            resend_num: 0,
+            channel_id: 0,
+            data: vec![0; 64],
+        });
+
+        let ack_flit = Flit::Ack(AckFlit {
+            source_id: "0".to_string(),
+            dest_id: "1".to_string(),
+            packet_id: 0,
+            flit_num: 4,
+            channel_id: 0,
+        });
+
+        assert_eq!(blocking.check_received_flit(&header_flit), RECEIVE_FLIT);
+        assert_eq!(blocking.check_received_flit(&block_data_flit), BLOCK_FLIT);
+        assert_eq!(blocking.check_received_flit(&data_flit), RECEIVE_FLIT);
+        assert_eq!(blocking.check_received_flit(&tail_flit), RECEIVE_FLIT);
+        assert_eq!(blocking.check_received_flit(&ack_flit), RECEIVE_FLIT);
     }
 }

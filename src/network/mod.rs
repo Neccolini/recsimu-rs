@@ -9,6 +9,7 @@ use self::protocols::packets::DefaultPacket;
 use self::protocols::packets::InjectionPacket;
 use self::protocols::NetworkProtocol;
 use self::vid::*;
+use crate::hardware::switching::Switching;
 use crate::log::{
     get_packet_log, post_new_packet_log, update_packet_log, NewPacketLogInfo, UpdatePacketLogInfo,
 };
@@ -22,6 +23,7 @@ pub type ChannelId = u32;
 pub struct Network {
     id: String,
     cur_cycle: u32,
+    switching: Switching,
     pub routing: NetworkProtocol,
     pub sending_flit_buffer: HashMap<ChannelId, FlitBuffer>,
     pub receiving_flit_buffer: HashMap<ChannelId, FlitBuffer>,
@@ -29,7 +31,13 @@ pub struct Network {
 }
 
 impl Network {
-    pub fn new(id: String, vc_num: ChannelId, rf_kind: String, node_type: NodeType) -> Self {
+    pub fn new(
+        id: String,
+        vc_num: ChannelId,
+        switching: Switching,
+        rf_kind: String,
+        node_type: NodeType,
+    ) -> Self {
         // sending_flit_bufferとreceiving_flit_bufferを初期化する
         // 0...vc_num-1のchannel_idを持つFlitBufferを生成する
         let mut sending_flit_buffer = HashMap::new();
@@ -47,6 +55,7 @@ impl Network {
         Self {
             id,
             cur_cycle: 0,
+            switching,
             routing,
             sending_flit_buffer,
             receiving_flit_buffer,
@@ -89,11 +98,14 @@ impl Network {
                     .push(flit);
             }
         }
-        // ルーティングするフリットの処理
-        let channel_ids: Vec<ChannelId> = self.receiving_flit_buffer.keys().cloned().collect();
-        // receiving_flit_bufferからsending_flit_bufferへフリットを転送する
-        for channel_id in channel_ids {
-            self.forward_flits(channel_id);
+
+        if self.switching == Switching::CutThrough {
+            // ルーティングするフリットの処理
+            let channel_ids: Vec<ChannelId> = self.receiving_flit_buffer.keys().cloned().collect();
+            // receiving_flit_bufferからsending_flit_bufferへフリットを転送する
+            for channel_id in channel_ids {
+                self.forward_flits(channel_id);
+            }
         }
     }
 
@@ -127,6 +139,17 @@ impl Network {
                 .get_mut(&channel_id)
                 .unwrap()
                 .push(flit.clone());
+
+            if flit.is_tail() || (flit.is_header() && flit.get_flits_len().unwrap_or(0) == 1) {
+                while !self
+                    .receiving_flit_buffer
+                    .get(&channel_id)
+                    .unwrap()
+                    .is_empty()
+                {
+                    self.forward_flits(channel_id);
+                }
+            }
         }
     }
 
@@ -195,11 +218,45 @@ mod tests {
     use crate::network::protocols::packets::InjectionPacket;
 
     #[test]
-    fn test_send_flit() {
+    fn test_send_flit1() {
         add_to_vid_table(u32::MAX, "broadcast".to_string());
         let mut network = Network::new(
             "test".to_string(),
             1,
+            Switching::StoreAndForward,
+            "default".to_string(),
+            NodeType::Router,
+        );
+        let packet = InjectionPacket {
+            message: "hello world".to_string(),
+            dest_id: "broadcast".to_string(),
+            source_id: "test".to_string(),
+        };
+        network.send_new_packet(&packet);
+        network.update(0);
+
+        // preq
+        network.send_flit(0).unwrap();
+
+        network.update(1);
+        let flit = network.send_flit(0).unwrap();
+
+        assert_eq!(flit.get_source_id().unwrap(), "test".to_string());
+        assert_eq!(flit.get_dest_id().unwrap(), "broadcast".to_string());
+        assert_eq!(flit.get_packet_id().unwrap(), 0);
+        assert_eq!(flit.get_next_id().unwrap(), "broadcast".to_string());
+        assert_eq!(flit.get_prev_id().unwrap(), "test".to_string());
+        assert_eq!(flit.get_flits_len().unwrap(), 1);
+        assert_eq!(flit.get_channel_id().unwrap(), 0);
+    }
+
+    #[test]
+    fn test_send_flit2() {
+        add_to_vid_table(u32::MAX, "broadcast".to_string());
+        let mut network = Network::new(
+            "test".to_string(),
+            1,
+            Switching::CutThrough,
             "default".to_string(),
             NodeType::Router,
         );
