@@ -1,7 +1,7 @@
 mod blocking;
 pub(crate) mod constants;
 pub mod state;
-
+pub mod switching;
 extern crate rand;
 use self::state::{NodeState, State};
 use crate::network::flit::{AckFlit, Flit};

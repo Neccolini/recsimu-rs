@@ -9,6 +9,7 @@ use self::protocols::packets::DefaultPacket;
 use self::protocols::packets::InjectionPacket;
 use self::protocols::NetworkProtocol;
 use self::vid::*;
+use crate::hardware::switching::Switching;
 use crate::log::{
     get_packet_log, post_new_packet_log, update_packet_log, NewPacketLogInfo, UpdatePacketLogInfo,
 };
@@ -22,6 +23,7 @@ pub type ChannelId = u32;
 pub struct Network {
     id: String,
     cur_cycle: u32,
+    switching: Switching,
     pub routing: NetworkProtocol,
     pub sending_flit_buffer: HashMap<ChannelId, FlitBuffer>,
     pub receiving_flit_buffer: HashMap<ChannelId, FlitBuffer>,
@@ -29,7 +31,13 @@ pub struct Network {
 }
 
 impl Network {
-    pub fn new(id: String, vc_num: ChannelId, rf_kind: String, node_type: NodeType) -> Self {
+    pub fn new(
+        id: String,
+        vc_num: ChannelId,
+        switching: Switching,
+        rf_kind: String,
+        node_type: NodeType,
+    ) -> Self {
         // sending_flit_bufferとreceiving_flit_bufferを初期化する
         // 0...vc_num-1のchannel_idを持つFlitBufferを生成する
         let mut sending_flit_buffer = HashMap::new();
@@ -47,6 +55,7 @@ impl Network {
         Self {
             id,
             cur_cycle: 0,
+            switching,
             routing,
             sending_flit_buffer,
             receiving_flit_buffer,
@@ -89,6 +98,7 @@ impl Network {
                     .push(flit);
             }
         }
+
         // ルーティングするフリットの処理
         let channel_ids: Vec<ChannelId> = self.receiving_flit_buffer.keys().cloned().collect();
         // receiving_flit_bufferからsending_flit_bufferへフリットを転送する
@@ -200,6 +210,7 @@ mod tests {
         let mut network = Network::new(
             "test".to_string(),
             1,
+            Switching::StoreAndForward,
             "default".to_string(),
             NodeType::Router,
         );

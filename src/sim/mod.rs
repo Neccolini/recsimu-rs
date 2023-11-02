@@ -3,6 +3,7 @@ pub(crate) mod node_type;
 pub mod nodes;
 
 use crate::file::InputFile;
+use crate::hardware::switching::Switching;
 use crate::log::{get_all_log, Log};
 use crate::network::protocols::packets::InjectionPacket;
 use std::collections::HashMap;
@@ -25,6 +26,8 @@ impl SimBuilder {
     }
     pub fn build(&self) -> Result<Sim, Box<dyn error::Error>> {
         let input = InputFile::new(self.path.clone());
+
+        let switching = input.switching.parse::<Switching>()?;
 
         let nodes: Vec<Node> = input
             .nodes
@@ -49,6 +52,7 @@ impl SimBuilder {
                 Node::new(
                     node.node_id.clone(),
                     input.channel_num,
+                    switching.clone(),
                     "default".to_string(),
                     NodeType::new(&node.node_type),
                     packets,

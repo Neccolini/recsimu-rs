@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::hardware::state::State;
+use crate::hardware::switching::Switching;
 use crate::hardware::Hardware;
 use crate::network::flit::Flit;
 use crate::network::protocols::packets::InjectionPacket;
@@ -24,6 +25,7 @@ impl Node {
     pub fn new(
         id: String,
         vc_num: u32,
+        switching: Switching,
         rf_kind: String,
         node_type: NodeType,
         packets: HashMap<CycleNum, InjectionPacket>,
@@ -32,7 +34,7 @@ impl Node {
             id: id.clone(),
             node_type: node_type.clone(),
             alive: true,
-            network: Network::new(id.clone(), vc_num, rf_kind, node_type),
+            network: Network::new(id.clone(), vc_num, switching, rf_kind, node_type),
             hardware: Hardware::new(id),
             packets,
             cur_cycle: 0,
