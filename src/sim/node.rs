@@ -34,8 +34,8 @@ impl Node {
             id: id.clone(),
             node_type: node_type.clone(),
             alive: true,
-            network: Network::new(id.clone(), vc_num, switching, rf_kind, node_type),
-            hardware: Hardware::new(id),
+            network: Network::new(id.clone(), vc_num, switching.clone(), rf_kind, node_type),
+            hardware: Hardware::new(id, switching),
             packets,
             cur_cycle: 0,
         }

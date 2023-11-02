@@ -1,7 +1,8 @@
 use std::str::FromStr;
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub enum Switching {
     CutThrough,
+    #[default]
     StoreAndForward,
 }
 

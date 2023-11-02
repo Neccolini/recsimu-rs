@@ -3,7 +3,10 @@ pub(crate) mod constants;
 pub mod state;
 pub mod switching;
 extern crate rand;
-use self::state::{NodeState, State};
+use self::{
+    state::{NodeState, State},
+    switching::Switching,
+};
 use crate::network::flit::{AckFlit, Flit};
 use rand::Rng;
 
@@ -19,7 +22,7 @@ pub struct Hardware {
 }
 
 impl Hardware {
-    pub fn new(id: String) -> Self {
+    pub fn new(id: String, switching: Switching) -> Self {
         Self {
             id,
             state: NodeState::default(),
@@ -27,7 +30,7 @@ impl Hardware {
             ack_buffer: Flit::default(),
             received_msg_is_broadcast: false,
             received_msg_is_ack: false,
-            blocking: blocking::Blocking::default(),
+            blocking: blocking::Blocking::new(switching),
         }
     }
 }
@@ -254,10 +257,10 @@ impl Hardware {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::network::flit::DataFlit;
+    use crate::network::flit::{DataFlit, HeaderFlit};
     #[test]
     fn test_send_flit() {
-        let mut hardware = Hardware::new("source_id".to_string());
+        let mut hardware = Hardware::new("source_id".to_string(), Switching::StoreAndForward);
 
         // データフリットを送信する
         let flit = Flit::Data(DataFlit {
@@ -280,17 +283,16 @@ mod tests {
 
     #[test]
     fn test_receive_flit() {
-        let mut hardware = Hardware::new("dest_id".to_string());
+        let mut hardware = Hardware::new("dest_id".to_string(), Switching::StoreAndForward);
 
         // データフリットを受信する
-        let flit = Flit::Data(DataFlit {
+        let flit = Flit::Header(HeaderFlit {
             source_id: "source_id".to_string(),
             dest_id: "dest_id".to_string(),
             next_id: "dest_id".to_string(),
             prev_id: "prev_id".to_string(),
-            resend_num: 0,
             packet_id: 0,
-            flit_num: 0,
+            flits_len: 1,
             channel_id: 0,
             data: vec![0; 8],
         });
@@ -304,7 +306,7 @@ mod tests {
     // calc_wait_cyclesのテスト
     #[test]
     fn test_calc_wait_cycles() {
-        let mut hardware = Hardware::new("dest_id".to_string());
+        let mut hardware = Hardware::new("dest_id".to_string(), Switching::StoreAndForward);
         hardware.state.set_resend_times(0);
         assert_eq!(hardware.calc_wait_cycles(), 2);
 

@@ -99,11 +99,13 @@ impl Network {
             }
         }
 
-        // ルーティングするフリットの処理
-        let channel_ids: Vec<ChannelId> = self.receiving_flit_buffer.keys().cloned().collect();
-        // receiving_flit_bufferからsending_flit_bufferへフリットを転送する
-        for channel_id in channel_ids {
-            self.forward_flits(channel_id);
+        if self.switching == Switching::CutThrough {
+            // ルーティングするフリットの処理
+            let channel_ids: Vec<ChannelId> = self.receiving_flit_buffer.keys().cloned().collect();
+            // receiving_flit_bufferからsending_flit_bufferへフリットを転送する
+            for channel_id in channel_ids {
+                self.forward_flits(channel_id);
+            }
         }
     }
 
@@ -137,6 +139,17 @@ impl Network {
                 .get_mut(&channel_id)
                 .unwrap()
                 .push(flit.clone());
+
+            if flit.is_tail() || (flit.is_header() && flit.get_flits_len().unwrap_or(0) == 1) {
+                while !self
+                    .receiving_flit_buffer
+                    .get(&channel_id)
+                    .unwrap()
+                    .is_empty()
+                {
+                    self.forward_flits(channel_id);
+                }
+            }
         }
     }
 
