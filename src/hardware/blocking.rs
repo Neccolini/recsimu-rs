@@ -105,3 +105,75 @@ impl Default for Blocking {
         Self::new(Switching::StoreAndForward)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::network::flit::{AckFlit, DataFlit, HeaderFlit, TailFlit};
+
+    #[test]
+    fn test_check_received_flit() {
+        let mut blocking = Blocking::new(Switching::StoreAndForward);
+
+        let header_flit = Flit::Header(HeaderFlit {
+            source_id: "0".to_string(),
+            dest_id: "1".to_string(),
+            next_id: "1".to_string(),
+            prev_id: "0".to_string(),
+            packet_id: 0,
+            flits_len: 3,
+            channel_id: 0,
+            data: vec![0; 64],
+        });
+
+        let data_flit = Flit::Data(DataFlit {
+            source_id: "0".to_string(),
+            dest_id: "1".to_string(),
+            next_id: "1".to_string(),
+            prev_id: "0".to_string(),
+            packet_id: 0,
+            flit_num: 1,
+            resend_num: 0,
+            channel_id: 0,
+            data: vec![0; 64],
+        });
+
+        let block_data_flit = Flit::Data(DataFlit {
+            source_id: "5".to_string(),
+            dest_id: "1".to_string(),
+            next_id: "1".to_string(),
+            prev_id: "0".to_string(),
+            packet_id: 1,
+            flit_num: 1,
+            resend_num: 0,
+            channel_id: 0,
+            data: vec![0; 64],
+        });
+
+        let tail_flit = Flit::Tail(TailFlit {
+            source_id: "0".to_string(),
+            dest_id: "1".to_string(),
+            next_id: "1".to_string(),
+            prev_id: "0".to_string(),
+            packet_id: 0,
+            flit_num: 2,
+            resend_num: 0,
+            channel_id: 0,
+            data: vec![0; 64],
+        });
+
+        let ack_flit = Flit::Ack(AckFlit {
+            source_id: "0".to_string(),
+            dest_id: "1".to_string(),
+            packet_id: 0,
+            flit_num: 4,
+            channel_id: 0,
+        });
+
+        assert_eq!(blocking.check_received_flit(&header_flit), RECEIVE_FLIT);
+        assert_eq!(blocking.check_received_flit(&block_data_flit), BLOCK_FLIT);
+        assert_eq!(blocking.check_received_flit(&data_flit), RECEIVE_FLIT);
+        assert_eq!(blocking.check_received_flit(&tail_flit), RECEIVE_FLIT);
+        assert_eq!(blocking.check_received_flit(&ack_flit), RECEIVE_FLIT);
+    }
+}

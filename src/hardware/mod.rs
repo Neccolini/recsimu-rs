@@ -278,7 +278,12 @@ mod tests {
         let sended_flit = hardware.send_flit(&flit).unwrap();
         assert_eq!(sended_flit, flit.clone());
         assert_eq!(hardware.retransmission_buffer, flit.clone());
-        // assert_eq!(hardware.state.get(), State::Sending);
+
+        let mut hardware = Hardware::new("source_id".to_string(), Switching::CutThrough);
+
+        let sended_flit = hardware.send_flit(&flit).unwrap();
+        assert_eq!(sended_flit, flit.clone());
+        assert_eq!(hardware.retransmission_buffer, flit.clone());
     }
 
     #[test]
@@ -296,6 +301,13 @@ mod tests {
             channel_id: 0,
             data: vec![0; 8],
         });
+
+        let received_flit = hardware.receive_flit(&flit).unwrap();
+        assert_eq!(received_flit, Some(flit.clone()));
+        assert_eq!(hardware.ack_buffer.is_empty(), false);
+        assert_eq!(hardware.ack_buffer.is_ack(), true);
+
+        let mut hardware = Hardware::new("dest_id".to_string(), Switching::CutThrough);
 
         let received_flit = hardware.receive_flit(&flit).unwrap();
         assert_eq!(received_flit, Some(flit.clone()));

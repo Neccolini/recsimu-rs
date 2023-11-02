@@ -218,12 +218,45 @@ mod tests {
     use crate::network::protocols::packets::InjectionPacket;
 
     #[test]
-    fn test_send_flit() {
+    fn test_send_flit1() {
         add_to_vid_table(u32::MAX, "broadcast".to_string());
         let mut network = Network::new(
             "test".to_string(),
             1,
             Switching::StoreAndForward,
+            "default".to_string(),
+            NodeType::Router,
+        );
+        let packet = InjectionPacket {
+            message: "hello world".to_string(),
+            dest_id: "broadcast".to_string(),
+            source_id: "test".to_string(),
+        };
+        network.send_new_packet(&packet);
+        network.update(0);
+
+        // preq
+        network.send_flit(0).unwrap();
+
+        network.update(1);
+        let flit = network.send_flit(0).unwrap();
+
+        assert_eq!(flit.get_source_id().unwrap(), "test".to_string());
+        assert_eq!(flit.get_dest_id().unwrap(), "broadcast".to_string());
+        assert_eq!(flit.get_packet_id().unwrap(), 0);
+        assert_eq!(flit.get_next_id().unwrap(), "broadcast".to_string());
+        assert_eq!(flit.get_prev_id().unwrap(), "test".to_string());
+        assert_eq!(flit.get_flits_len().unwrap(), 1);
+        assert_eq!(flit.get_channel_id().unwrap(), 0);
+    }
+
+    #[test]
+    fn test_send_flit2() {
+        add_to_vid_table(u32::MAX, "broadcast".to_string());
+        let mut network = Network::new(
+            "test".to_string(),
+            1,
+            Switching::CutThrough,
             "default".to_string(),
             NodeType::Router,
         );
