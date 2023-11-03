@@ -14,7 +14,7 @@ pub type CycleNum = u32;
 pub struct Node {
     pub id: NodeId,
     pub node_type: NodeType,
-    network: Network,
+    pub network: Network,
     pub hardware: Hardware,
     pub packets: HashMap<CycleNum, InjectionPacket>,
     cur_cycle: u32,

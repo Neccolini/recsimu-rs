@@ -55,6 +55,12 @@ impl CoreFunction {
             CoreFunction::DefaultFunction(rf) => rf.id,
         }
     }
+
+    pub(crate) fn is_joined(&self) -> bool {
+        match self {
+            CoreFunction::DefaultFunction(rf) => rf.is_joined(),
+        }
+    }
 }
 
 impl Default for CoreFunction {
