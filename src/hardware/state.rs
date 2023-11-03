@@ -97,6 +97,7 @@ pub enum State {
     Waiting(Waiting),
     ReplyAck,
 }
+
 impl State {
     pub fn waiting_state(remaining_cycles: u32) -> Self {
         Self::Waiting(Waiting { remaining_cycles })

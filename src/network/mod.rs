@@ -24,9 +24,9 @@ pub struct Network {
     id: String,
     cur_cycle: u32,
     switching: Switching,
-    pub routing: NetworkProtocol,
-    pub sending_flit_buffer: HashMap<ChannelId, FlitBuffer>,
-    pub receiving_flit_buffer: HashMap<ChannelId, FlitBuffer>,
+    routing: NetworkProtocol,
+    sending_flit_buffer: HashMap<ChannelId, FlitBuffer>,
+    receiving_flit_buffer: HashMap<ChannelId, FlitBuffer>,
     received_flits_buffer: ReceivedFlitsBuffer,
 }
 
@@ -156,8 +156,10 @@ impl Network {
     pub fn send_new_packet(&mut self, packet: &InjectionPacket) {
         self.routing.push_new_packet(packet);
     }
+}
 
-    pub fn forward_flits(&mut self, channel_id: ChannelId) {
+impl Network {
+    fn forward_flits(&mut self, channel_id: ChannelId) {
         // receiving_flit_bufferからsending_flit_bufferへフリットを転送する
         if let Some(flit) = self
             .receiving_flit_buffer
@@ -174,9 +176,7 @@ impl Network {
                 .push(new_flit);
         }
     }
-}
 
-impl Network {
     fn log_handler(&self, packet: &GeneralPacket) {
         let packet_id = packet.source_id.to_string() + "_" + &packet.packet_id.to_string();
 

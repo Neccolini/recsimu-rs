@@ -12,10 +12,10 @@ use rand::Rng;
 
 #[derive(Default)]
 pub struct Hardware {
-    pub id: String,
+    id: String,
     pub state: NodeState,
     pub retransmission_buffer: Flit,
-    pub ack_buffer: Flit,
+    ack_buffer: Flit,
     received_msg_is_broadcast: bool,
     received_msg_is_ack: bool,
     blocking: blocking::Blocking,
@@ -82,7 +82,6 @@ impl Hardware {
             }
             Flit::Ack(_) => {
                 let _ack = self.receive_ack(flit)?;
-                // self.ack_buffer = ack; // todo 右辺はNoneでは？
 
                 self.received_msg_is_ack = true;
 
@@ -151,10 +150,6 @@ impl Hardware {
 
     pub fn set_state(&mut self, state: &State) {
         self.state.next(state);
-    }
-
-    pub fn check_flit(&self, _flit: &Flit) -> Result<Option<Flit>, Box<dyn std::error::Error>> {
-        unimplemented!();
     }
 }
 
