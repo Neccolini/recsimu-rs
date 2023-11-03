@@ -1,0 +1,242 @@
+{
+  "node_num": 25,
+  "total_cycles": 1000,
+  "channel_num": 1,
+  "switching": "store_and_forward",
+  "nodes": [
+    {
+      "node_id": "0",
+      "node_type": "coordinator"
+    },
+    {
+      "node_id": "1",
+      "node_type": "router"
+    },
+    {
+      "node_id": "2",
+      "node_type": "router"
+    },
+    {
+      "node_id": "3",
+      "node_type": "router"
+    },
+    {
+      "node_id": "4",
+      "node_type": "router"
+    },
+    {
+      "node_id": "5",
+      "node_type": "router"
+    },
+    {
+      "node_id": "6",
+      "node_type": "router"
+    },
+    {
+      "node_id": "7",
+      "node_type": "router"
+    },
+    {
+      "node_id": "8",
+      "node_type": "router"
+    },
+    {
+      "node_id": "9",
+      "node_type": "router"
+    },
+    {
+      "node_id": "10",
+      "node_type": "router"
+    },
+    {
+      "node_id": "11",
+      "node_type": "router"
+    },
+    {
+      "node_id": "12",
+      "node_type": "router"
+    },
+    {
+      "node_id": "13",
+      "node_type": "router"
+    },
+    {
+      "node_id": "14",
+      "node_type": "router"
+    },
+    {
+      "node_id": "15",
+      "node_type": "router"
+    },
+    {
+      "node_id": "16",
+      "node_type": "router"
+    },
+    {
+      "node_id": "17",
+      "node_type": "router"
+    },
+    {
+      "node_id": "18",
+      "node_type": "router"
+    },
+    {
+      "node_id": "19",
+      "node_type": "router"
+    },
+    {
+      "node_id": "20",
+      "node_type": "router"
+    },
+    {
+      "node_id": "21",
+      "node_type": "router"
+    },
+    {
+      "node_id": "22",
+      "node_type": "router"
+    },
+    {
+      "node_id": "23",
+      "node_type": "router"
+    },
+    {
+      "node_id": "24",
+      "node_type": "router"
+    }
+  ],
+  "neighbors": {
+    "0": [
+      "5",
+      "3"
+    ],
+    "1": [
+      "7",
+      "12",
+      "18",
+      "2"
+    ],
+    "10": [
+      "7",
+      "2",
+      "8"
+    ],
+    "11": [
+      "15",
+      "19",
+      "5"
+    ],
+    "12": [
+      "6",
+      "16",
+      "17",
+      "1"
+    ],
+    "13": [
+      "4",
+      "14",
+      "22"
+    ],
+    "14": [
+      "24",
+      "13"
+    ],
+    "15": [
+      "8",
+      "2",
+      "11"
+    ],
+    "16": [
+      "23",
+      "21",
+      "12"
+    ],
+    "17": [
+      "12",
+      "21",
+      "4",
+      "18"
+    ],
+    "18": [
+      "1",
+      "17",
+      "9",
+      "19"
+    ],
+    "19": [
+      "2",
+      "18",
+      "20",
+      "11"
+    ],
+    "2": [
+      "10",
+      "1",
+      "19",
+      "15"
+    ],
+    "20": [
+      "19",
+      "9",
+      "3",
+      "5"
+    ],
+    "21": [
+      "16",
+      "24",
+      "17"
+    ],
+    "22": [
+      "9",
+      "13",
+      "3"
+    ],
+    "23": [
+      "16",
+      "6"
+    ],
+    "24": [
+      "21",
+      "14",
+      "4"
+    ],
+    "3": [
+      "20",
+      "22",
+      "0"
+    ],
+    "4": [
+      "17",
+      "24",
+      "13",
+      "9"
+    ],
+    "5": [
+      "11",
+      "20",
+      "0"
+    ],
+    "6": [
+      "23",
+      "12",
+      "7"
+    ],
+    "7": [
+      "6",
+      "1",
+      "10"
+    ],
+    "8": [
+      "10",
+      "15"
+    ],
+    "9": [
+      "18",
+      "4",
+      "22",
+      "20"
+    ]
+  },
+  "packets": [
+  ]
+}

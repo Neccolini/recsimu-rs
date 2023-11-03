@@ -1,0 +1,1052 @@
+{
+  "node_num": 10,
+  "channel_num": 1,
+  "switching": "cut_through",
+  "nodes": [
+    {
+      "node_id": "0",
+      "node_type": "coordinator"
+    },
+    {
+      "node_id": "1",
+      "node_type": "router"
+    },
+    {
+      "node_id": "2",
+      "node_type": "router"
+    },
+    {
+      "node_id": "3",
+      "node_type": "router"
+    },
+    {
+      "node_id": "4",
+      "node_type": "router"
+    },
+    {
+      "node_id": "5",
+      "node_type": "router"
+    },
+    {
+      "node_id": "6",
+      "node_type": "router"
+    },
+    {
+      "node_id": "7",
+      "node_type": "router"
+    },
+    {
+      "node_id": "8",
+      "node_type": "router"
+    },
+    {
+      "node_id": "9",
+      "node_type": "router"
+    }
+  ],
+  "neighbors": {
+    "0": [
+      "6"
+    ],
+    "1": [
+      "5",
+      "7",
+      "9"
+    ],
+    "2": [
+      "6",
+      "7"
+    ],
+    "3": [
+      "9"
+    ],
+    "4": [
+      "7",
+      "6"
+    ],
+    "5": [
+      "8",
+      "1"
+    ],
+    "6": [
+      "2",
+      "0",
+      "4"
+    ],
+    "7": [
+      "2",
+      "4",
+      "1"
+    ],
+    "8": [
+      "5"
+    ],
+    "9": [
+      "1",
+      "3"
+    ]
+  },
+  "total_cycles": 10000,
+  "packets": [
+    {
+      "cycle_num": 1152,
+      "src_id": "0",
+      "dest_id": "6",
+      "msg": ""
+    },
+    {
+      "cycle_num": 1720,
+      "src_id": "0",
+      "dest_id": "4",
+      "msg": ""
+    },
+    {
+      "cycle_num": 2317,
+      "src_id": "0",
+      "dest_id": "9",
+      "msg": ""
+    },
+    {
+      "cycle_num": 2977,
+      "src_id": "0",
+      "dest_id": "7",
+      "msg": ""
+    },
+    {
+      "cycle_num": 3882,
+      "src_id": "0",
+      "dest_id": "9",
+      "msg": ""
+    },
+    {
+      "cycle_num": 4562,
+      "src_id": "0",
+      "dest_id": "3",
+      "msg": ""
+    },
+    {
+      "cycle_num": 4881,
+      "src_id": "0",
+      "dest_id": "1",
+      "msg": ""
+    },
+    {
+      "cycle_num": 5398,
+      "src_id": "0",
+      "dest_id": "4",
+      "msg": ""
+    },
+    {
+      "cycle_num": 6045,
+      "src_id": "0",
+      "dest_id": "3",
+      "msg": ""
+    },
+    {
+      "cycle_num": 6743,
+      "src_id": "0",
+      "dest_id": "4",
+      "msg": ""
+    },
+    {
+      "cycle_num": 7400,
+      "src_id": "0",
+      "dest_id": "6",
+      "msg": ""
+    },
+    {
+      "cycle_num": 8041,
+      "src_id": "0",
+      "dest_id": "9",
+      "msg": ""
+    },
+    {
+      "cycle_num": 8372,
+      "src_id": "0",
+      "dest_id": "5",
+      "msg": ""
+    },
+    {
+      "cycle_num": 9321,
+      "src_id": "0",
+      "dest_id": "7",
+      "msg": ""
+    },
+    {
+      "cycle_num": 9453,
+      "src_id": "0",
+      "dest_id": "6",
+      "msg": ""
+    },
+    {
+      "cycle_num": 10029,
+      "src_id": "0",
+      "dest_id": "6",
+      "msg": ""
+    },
+    {
+      "cycle_num": 1286,
+      "src_id": "1",
+      "dest_id": "6",
+      "msg": ""
+    },
+    {
+      "cycle_num": 2114,
+      "src_id": "1",
+      "dest_id": "8",
+      "msg": ""
+    },
+    {
+      "cycle_num": 2425,
+      "src_id": "1",
+      "dest_id": "3",
+      "msg": ""
+    },
+    {
+      "cycle_num": 3049,
+      "src_id": "1",
+      "dest_id": "8",
+      "msg": ""
+    },
+    {
+      "cycle_num": 3613,
+      "src_id": "1",
+      "dest_id": "6",
+      "msg": ""
+    },
+    {
+      "cycle_num": 4119,
+      "src_id": "1",
+      "dest_id": "0",
+      "msg": ""
+    },
+    {
+      "cycle_num": 4846,
+      "src_id": "1",
+      "dest_id": "0",
+      "msg": ""
+    },
+    {
+      "cycle_num": 5788,
+      "src_id": "1",
+      "dest_id": "3",
+      "msg": ""
+    },
+    {
+      "cycle_num": 5874,
+      "src_id": "1",
+      "dest_id": "7",
+      "msg": ""
+    },
+    {
+      "cycle_num": 6777,
+      "src_id": "1",
+      "dest_id": "7",
+      "msg": ""
+    },
+    {
+      "cycle_num": 7477,
+      "src_id": "1",
+      "dest_id": "4",
+      "msg": ""
+    },
+    {
+      "cycle_num": 8187,
+      "src_id": "1",
+      "dest_id": "6",
+      "msg": ""
+    },
+    {
+      "cycle_num": 8489,
+      "src_id": "1",
+      "dest_id": "4",
+      "msg": ""
+    },
+    {
+      "cycle_num": 8899,
+      "src_id": "1",
+      "dest_id": "5",
+      "msg": ""
+    },
+    {
+      "cycle_num": 9488,
+      "src_id": "1",
+      "dest_id": "7",
+      "msg": ""
+    },
+    {
+      "cycle_num": 10193,
+      "src_id": "1",
+      "dest_id": "6",
+      "msg": ""
+    },
+    {
+      "cycle_num": 1160,
+      "src_id": "2",
+      "dest_id": "6",
+      "msg": ""
+    },
+    {
+      "cycle_num": 1900,
+      "src_id": "2",
+      "dest_id": "1",
+      "msg": ""
+    },
+    {
+      "cycle_num": 2586,
+      "src_id": "2",
+      "dest_id": "5",
+      "msg": ""
+    },
+    {
+      "cycle_num": 3312,
+      "src_id": "2",
+      "dest_id": "5",
+      "msg": ""
+    },
+    {
+      "cycle_num": 3579,
+      "src_id": "2",
+      "dest_id": "3",
+      "msg": ""
+    },
+    {
+      "cycle_num": 4381,
+      "src_id": "2",
+      "dest_id": "8",
+      "msg": ""
+    },
+    {
+      "cycle_num": 4924,
+      "src_id": "2",
+      "dest_id": "4",
+      "msg": ""
+    },
+    {
+      "cycle_num": 5240,
+      "src_id": "2",
+      "dest_id": "4",
+      "msg": ""
+    },
+    {
+      "cycle_num": 5865,
+      "src_id": "2",
+      "dest_id": "8",
+      "msg": ""
+    },
+    {
+      "cycle_num": 6548,
+      "src_id": "2",
+      "dest_id": "4",
+      "msg": ""
+    },
+    {
+      "cycle_num": 7069,
+      "src_id": "2",
+      "dest_id": "9",
+      "msg": ""
+    },
+    {
+      "cycle_num": 8133,
+      "src_id": "2",
+      "dest_id": "0",
+      "msg": ""
+    },
+    {
+      "cycle_num": 8222,
+      "src_id": "2",
+      "dest_id": "6",
+      "msg": ""
+    },
+    {
+      "cycle_num": 9034,
+      "src_id": "2",
+      "dest_id": "7",
+      "msg": ""
+    },
+    {
+      "cycle_num": 9401,
+      "src_id": "2",
+      "dest_id": "5",
+      "msg": ""
+    },
+    {
+      "cycle_num": 10200,
+      "src_id": "2",
+      "dest_id": "9",
+      "msg": ""
+    },
+    {
+      "cycle_num": 1112,
+      "src_id": "3",
+      "dest_id": "0",
+      "msg": ""
+    },
+    {
+      "cycle_num": 1671,
+      "src_id": "3",
+      "dest_id": "9",
+      "msg": ""
+    },
+    {
+      "cycle_num": 2256,
+      "src_id": "3",
+      "dest_id": "9",
+      "msg": ""
+    },
+    {
+      "cycle_num": 3299,
+      "src_id": "3",
+      "dest_id": "6",
+      "msg": ""
+    },
+    {
+      "cycle_num": 3919,
+      "src_id": "3",
+      "dest_id": "0",
+      "msg": ""
+    },
+    {
+      "cycle_num": 4303,
+      "src_id": "3",
+      "dest_id": "0",
+      "msg": ""
+    },
+    {
+      "cycle_num": 4807,
+      "src_id": "3",
+      "dest_id": "0",
+      "msg": ""
+    },
+    {
+      "cycle_num": 5202,
+      "src_id": "3",
+      "dest_id": "7",
+      "msg": ""
+    },
+    {
+      "cycle_num": 6262,
+      "src_id": "3",
+      "dest_id": "0",
+      "msg": ""
+    },
+    {
+      "cycle_num": 6892,
+      "src_id": "3",
+      "dest_id": "1",
+      "msg": ""
+    },
+    {
+      "cycle_num": 7108,
+      "src_id": "3",
+      "dest_id": "1",
+      "msg": ""
+    },
+    {
+      "cycle_num": 8075,
+      "src_id": "3",
+      "dest_id": "0",
+      "msg": ""
+    },
+    {
+      "cycle_num": 8706,
+      "src_id": "3",
+      "dest_id": "2",
+      "msg": ""
+    },
+    {
+      "cycle_num": 9031,
+      "src_id": "3",
+      "dest_id": "9",
+      "msg": ""
+    },
+    {
+      "cycle_num": 9850,
+      "src_id": "3",
+      "dest_id": "2",
+      "msg": ""
+    },
+    {
+      "cycle_num": 10578,
+      "src_id": "3",
+      "dest_id": "2",
+      "msg": ""
+    },
+    {
+      "cycle_num": 1333,
+      "src_id": "4",
+      "dest_id": "8",
+      "msg": ""
+    },
+    {
+      "cycle_num": 2136,
+      "src_id": "4",
+      "dest_id": "0",
+      "msg": ""
+    },
+    {
+      "cycle_num": 2615,
+      "src_id": "4",
+      "dest_id": "3",
+      "msg": ""
+    },
+    {
+      "cycle_num": 3202,
+      "src_id": "4",
+      "dest_id": "0",
+      "msg": ""
+    },
+    {
+      "cycle_num": 3691,
+      "src_id": "4",
+      "dest_id": "6",
+      "msg": ""
+    },
+    {
+      "cycle_num": 4434,
+      "src_id": "4",
+      "dest_id": "8",
+      "msg": ""
+    },
+    {
+      "cycle_num": 4641,
+      "src_id": "4",
+      "dest_id": "1",
+      "msg": ""
+    },
+    {
+      "cycle_num": 5684,
+      "src_id": "4",
+      "dest_id": "6",
+      "msg": ""
+    },
+    {
+      "cycle_num": 6044,
+      "src_id": "4",
+      "dest_id": "3",
+      "msg": ""
+    },
+    {
+      "cycle_num": 6490,
+      "src_id": "4",
+      "dest_id": "6",
+      "msg": ""
+    },
+    {
+      "cycle_num": 7074,
+      "src_id": "4",
+      "dest_id": "9",
+      "msg": ""
+    },
+    {
+      "cycle_num": 7609,
+      "src_id": "4",
+      "dest_id": "7",
+      "msg": ""
+    },
+    {
+      "cycle_num": 8385,
+      "src_id": "4",
+      "dest_id": "0",
+      "msg": ""
+    },
+    {
+      "cycle_num": 9272,
+      "src_id": "4",
+      "dest_id": "1",
+      "msg": ""
+    },
+    {
+      "cycle_num": 9759,
+      "src_id": "4",
+      "dest_id": "9",
+      "msg": ""
+    },
+    {
+      "cycle_num": 10531,
+      "src_id": "4",
+      "dest_id": "5",
+      "msg": ""
+    },
+    {
+      "cycle_num": 1193,
+      "src_id": "5",
+      "dest_id": "9",
+      "msg": ""
+    },
+    {
+      "cycle_num": 1745,
+      "src_id": "5",
+      "dest_id": "7",
+      "msg": ""
+    },
+    {
+      "cycle_num": 2526,
+      "src_id": "5",
+      "dest_id": "8",
+      "msg": ""
+    },
+    {
+      "cycle_num": 2828,
+      "src_id": "5",
+      "dest_id": "4",
+      "msg": ""
+    },
+    {
+      "cycle_num": 3511,
+      "src_id": "5",
+      "dest_id": "6",
+      "msg": ""
+    },
+    {
+      "cycle_num": 4100,
+      "src_id": "5",
+      "dest_id": "8",
+      "msg": ""
+    },
+    {
+      "cycle_num": 4619,
+      "src_id": "5",
+      "dest_id": "0",
+      "msg": ""
+    },
+    {
+      "cycle_num": 5342,
+      "src_id": "5",
+      "dest_id": "9",
+      "msg": ""
+    },
+    {
+      "cycle_num": 5866,
+      "src_id": "5",
+      "dest_id": "6",
+      "msg": ""
+    },
+    {
+      "cycle_num": 6772,
+      "src_id": "5",
+      "dest_id": "7",
+      "msg": ""
+    },
+    {
+      "cycle_num": 7139,
+      "src_id": "5",
+      "dest_id": "7",
+      "msg": ""
+    },
+    {
+      "cycle_num": 7987,
+      "src_id": "5",
+      "dest_id": "0",
+      "msg": ""
+    },
+    {
+      "cycle_num": 8263,
+      "src_id": "5",
+      "dest_id": "7",
+      "msg": ""
+    },
+    {
+      "cycle_num": 9316,
+      "src_id": "5",
+      "dest_id": "6",
+      "msg": ""
+    },
+    {
+      "cycle_num": 9508,
+      "src_id": "5",
+      "dest_id": "8",
+      "msg": ""
+    },
+    {
+      "cycle_num": 10378,
+      "src_id": "5",
+      "dest_id": "2",
+      "msg": ""
+    },
+    {
+      "cycle_num": 1479,
+      "src_id": "6",
+      "dest_id": "5",
+      "msg": ""
+    },
+    {
+      "cycle_num": 1970,
+      "src_id": "6",
+      "dest_id": "0",
+      "msg": ""
+    },
+    {
+      "cycle_num": 2679,
+      "src_id": "6",
+      "dest_id": "7",
+      "msg": ""
+    },
+    {
+      "cycle_num": 2813,
+      "src_id": "6",
+      "dest_id": "5",
+      "msg": ""
+    },
+    {
+      "cycle_num": 3598,
+      "src_id": "6",
+      "dest_id": "5",
+      "msg": ""
+    },
+    {
+      "cycle_num": 4080,
+      "src_id": "6",
+      "dest_id": "3",
+      "msg": ""
+    },
+    {
+      "cycle_num": 5184,
+      "src_id": "6",
+      "dest_id": "1",
+      "msg": ""
+    },
+    {
+      "cycle_num": 5771,
+      "src_id": "6",
+      "dest_id": "0",
+      "msg": ""
+    },
+    {
+      "cycle_num": 5972,
+      "src_id": "6",
+      "dest_id": "7",
+      "msg": ""
+    },
+    {
+      "cycle_num": 6801,
+      "src_id": "6",
+      "dest_id": "8",
+      "msg": ""
+    },
+    {
+      "cycle_num": 7451,
+      "src_id": "6",
+      "dest_id": "3",
+      "msg": ""
+    },
+    {
+      "cycle_num": 7810,
+      "src_id": "6",
+      "dest_id": "1",
+      "msg": ""
+    },
+    {
+      "cycle_num": 8436,
+      "src_id": "6",
+      "dest_id": "5",
+      "msg": ""
+    },
+    {
+      "cycle_num": 9337,
+      "src_id": "6",
+      "dest_id": "1",
+      "msg": ""
+    },
+    {
+      "cycle_num": 9908,
+      "src_id": "6",
+      "dest_id": "4",
+      "msg": ""
+    },
+    {
+      "cycle_num": 10037,
+      "src_id": "6",
+      "dest_id": "8",
+      "msg": ""
+    },
+    {
+      "cycle_num": 1160,
+      "src_id": "7",
+      "dest_id": "4",
+      "msg": ""
+    },
+    {
+      "cycle_num": 1774,
+      "src_id": "7",
+      "dest_id": "0",
+      "msg": ""
+    },
+    {
+      "cycle_num": 2604,
+      "src_id": "7",
+      "dest_id": "2",
+      "msg": ""
+    },
+    {
+      "cycle_num": 3223,
+      "src_id": "7",
+      "dest_id": "2",
+      "msg": ""
+    },
+    {
+      "cycle_num": 3954,
+      "src_id": "7",
+      "dest_id": "2",
+      "msg": ""
+    },
+    {
+      "cycle_num": 4461,
+      "src_id": "7",
+      "dest_id": "9",
+      "msg": ""
+    },
+    {
+      "cycle_num": 5047,
+      "src_id": "7",
+      "dest_id": "3",
+      "msg": ""
+    },
+    {
+      "cycle_num": 5354,
+      "src_id": "7",
+      "dest_id": "4",
+      "msg": ""
+    },
+    {
+      "cycle_num": 6329,
+      "src_id": "7",
+      "dest_id": "3",
+      "msg": ""
+    },
+    {
+      "cycle_num": 6765,
+      "src_id": "7",
+      "dest_id": "5",
+      "msg": ""
+    },
+    {
+      "cycle_num": 7403,
+      "src_id": "7",
+      "dest_id": "5",
+      "msg": ""
+    },
+    {
+      "cycle_num": 7697,
+      "src_id": "7",
+      "dest_id": "3",
+      "msg": ""
+    },
+    {
+      "cycle_num": 8265,
+      "src_id": "7",
+      "dest_id": "5",
+      "msg": ""
+    },
+    {
+      "cycle_num": 8919,
+      "src_id": "7",
+      "dest_id": "5",
+      "msg": ""
+    },
+    {
+      "cycle_num": 9754,
+      "src_id": "7",
+      "dest_id": "2",
+      "msg": ""
+    },
+    {
+      "cycle_num": 10580,
+      "src_id": "7",
+      "dest_id": "0",
+      "msg": ""
+    },
+    {
+      "cycle_num": 1068,
+      "src_id": "8",
+      "dest_id": "6",
+      "msg": ""
+    },
+    {
+      "cycle_num": 1817,
+      "src_id": "8",
+      "dest_id": "3",
+      "msg": ""
+    },
+    {
+      "cycle_num": 2202,
+      "src_id": "8",
+      "dest_id": "1",
+      "msg": ""
+    },
+    {
+      "cycle_num": 2971,
+      "src_id": "8",
+      "dest_id": "1",
+      "msg": ""
+    },
+    {
+      "cycle_num": 3568,
+      "src_id": "8",
+      "dest_id": "2",
+      "msg": ""
+    },
+    {
+      "cycle_num": 4127,
+      "src_id": "8",
+      "dest_id": "2",
+      "msg": ""
+    },
+    {
+      "cycle_num": 4811,
+      "src_id": "8",
+      "dest_id": "5",
+      "msg": ""
+    },
+    {
+      "cycle_num": 5546,
+      "src_id": "8",
+      "dest_id": "5",
+      "msg": ""
+    },
+    {
+      "cycle_num": 6163,
+      "src_id": "8",
+      "dest_id": "9",
+      "msg": ""
+    },
+    {
+      "cycle_num": 6769,
+      "src_id": "8",
+      "dest_id": "4",
+      "msg": ""
+    },
+    {
+      "cycle_num": 7598,
+      "src_id": "8",
+      "dest_id": "1",
+      "msg": ""
+    },
+    {
+      "cycle_num": 8192,
+      "src_id": "8",
+      "dest_id": "6",
+      "msg": ""
+    },
+    {
+      "cycle_num": 8381,
+      "src_id": "8",
+      "dest_id": "5",
+      "msg": ""
+    },
+    {
+      "cycle_num": 8831,
+      "src_id": "8",
+      "dest_id": "5",
+      "msg": ""
+    },
+    {
+      "cycle_num": 9647,
+      "src_id": "8",
+      "dest_id": "4",
+      "msg": ""
+    },
+    {
+      "cycle_num": 10301,
+      "src_id": "8",
+      "dest_id": "3",
+      "msg": ""
+    },
+    {
+      "cycle_num": 1155,
+      "src_id": "9",
+      "dest_id": "0",
+      "msg": ""
+    },
+    {
+      "cycle_num": 2075,
+      "src_id": "9",
+      "dest_id": "5",
+      "msg": ""
+    },
+    {
+      "cycle_num": 2665,
+      "src_id": "9",
+      "dest_id": "6",
+      "msg": ""
+    },
+    {
+      "cycle_num": 3087,
+      "src_id": "9",
+      "dest_id": "1",
+      "msg": ""
+    },
+    {
+      "cycle_num": 3665,
+      "src_id": "9",
+      "dest_id": "5",
+      "msg": ""
+    },
+    {
+      "cycle_num": 4397,
+      "src_id": "9",
+      "dest_id": "5",
+      "msg": ""
+    },
+    {
+      "cycle_num": 4780,
+      "src_id": "9",
+      "dest_id": "7",
+      "msg": ""
+    },
+    {
+      "cycle_num": 5542,
+      "src_id": "9",
+      "dest_id": "6",
+      "msg": ""
+    },
+    {
+      "cycle_num": 6113,
+      "src_id": "9",
+      "dest_id": "1",
+      "msg": ""
+    },
+    {
+      "cycle_num": 6419,
+      "src_id": "9",
+      "dest_id": "5",
+      "msg": ""
+    },
+    {
+      "cycle_num": 7476,
+      "src_id": "9",
+      "dest_id": "7",
+      "msg": ""
+    },
+    {
+      "cycle_num": 7793,
+      "src_id": "9",
+      "dest_id": "2",
+      "msg": ""
+    },
+    {
+      "cycle_num": 8576,
+      "src_id": "9",
+      "dest_id": "5",
+      "msg": ""
+    },
+    {
+      "cycle_num": 8832,
+      "src_id": "9",
+      "dest_id": "3",
+      "msg": ""
+    },
+    {
+      "cycle_num": 9569,
+      "src_id": "9",
+      "dest_id": "8",
+      "msg": ""
+    },
+    {
+      "cycle_num": 10297,
+      "src_id": "9",
+      "dest_id": "1",
+      "msg": ""
+    }
+  ]
+}
