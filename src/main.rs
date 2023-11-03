@@ -101,6 +101,10 @@ mod tests {
                     clear_vid_table();
                     let mut sim = SimBuilder::new(path.clone(), verbose).build().unwrap();
                     sim.run();
+
+                    for node in sim.nodes.nodes.iter() {
+                        assert_eq!(node.network.is_joined(), true);
+                    }
                 }
             }
         }

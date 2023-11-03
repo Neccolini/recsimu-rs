@@ -156,6 +156,10 @@ impl Network {
     pub fn send_new_packet(&mut self, packet: &InjectionPacket) {
         self.core.push_new_packet(packet);
     }
+
+    pub fn is_joined(&self) -> bool {
+        self.core.is_joined()
+    }
 }
 
 impl Network {
