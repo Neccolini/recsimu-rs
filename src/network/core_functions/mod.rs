@@ -8,14 +8,15 @@ use crate::{
 
 use self::packets::{GeneralPacket, InjectionPacket};
 
+#[derive(Debug, Clone)]
 pub enum CoreFunction {
     DefaultFunction(DefaultFunction),
 }
 
 impl CoreFunction {
-    pub(crate) fn new(rf_kind: String, node_type: NodeType) -> Self {
+    pub(crate) fn new(rf_kind: &str, node_type: &NodeType) -> Self {
         #[allow(clippy::match_single_binding)]
-        match rf_kind.as_str() {
+        match rf_kind {
             _ => CoreFunction::DefaultFunction(DefaultFunction::new(node_type)),
         }
     }
@@ -65,6 +66,6 @@ impl CoreFunction {
 
 impl Default for CoreFunction {
     fn default() -> Self {
-        Self::new("".to_string(), NodeType::Router)
+        Self::new("default", &NodeType::Router)
     }
 }

@@ -7,7 +7,7 @@ use crate::hardware::switching::Switching;
 use crate::log::{get_all_log, Log};
 use crate::network::core_functions::packets::InjectionPacket;
 use std::collections::HashMap;
-use std::{error, path::PathBuf};
+use std::{error, path::Path, path::PathBuf};
 
 use self::node::Node;
 use self::node_type::NodeType;
@@ -21,8 +21,11 @@ pub struct SimBuilder {
 }
 
 impl SimBuilder {
-    pub fn new(path: PathBuf, verbose: bool) -> Self {
-        Self { path, verbose }
+    pub fn new(path: &Path, verbose: bool) -> Self {
+        Self {
+            path: path.to_path_buf(),
+            verbose,
+        }
     }
     pub fn build(&self) -> Result<Sim, Box<dyn error::Error>> {
         let input = InputFile::new(self.path.clone());
@@ -50,22 +53,22 @@ impl SimBuilder {
                     .collect::<HashMap<u32, InjectionPacket>>();
 
                 Node::new(
-                    node.node_id.clone(),
+                    &node.node_id,
                     input.channel_num,
-                    switching.clone(),
-                    "default".to_string(),
-                    NodeType::new(&node.node_type),
-                    packets,
+                    &switching.clone(),
+                    "default",
+                    &NodeType::new(&node.node_type),
+                    &packets,
                 )
             })
             .collect();
 
-        add_to_vid_table(u32::MAX, "broadcast".to_string());
+        add_to_vid_table(u32::MAX, "broadcast");
         print_vid_table();
         Ok(Sim {
             node_num: input.node_num,
             debug: self.verbose,
-            nodes: Nodes::new(nodes, input.neighbors),
+            nodes: Nodes::new(&nodes, &input.neighbors),
             total_cycles: input.total_cycles,
             vc_num: input.channel_num,
             log: Log::new(),
@@ -106,7 +109,7 @@ mod tests {
     #[test]
     fn test_sim_build() {
         let path = PathBuf::from("tests/run/1_c.json");
-        let sim_builder = SimBuilder::new(path, false);
+        let sim_builder = SimBuilder::new(&path, false);
         let sim = sim_builder.build().unwrap();
 
         assert_eq!(sim.node_num, 2);

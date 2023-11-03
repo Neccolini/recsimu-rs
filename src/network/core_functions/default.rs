@@ -24,7 +24,7 @@ pub struct DefaultFunction {
 }
 
 impl DefaultFunction {
-    pub fn new(node_type: NodeType) -> Self {
+    pub fn new(node_type: &NodeType) -> Self {
         let mut network_joined = false;
         let mut id = 0;
         let mut send_packet_buffer = VecDeque::new();
@@ -52,7 +52,7 @@ impl DefaultFunction {
             send_packet_buffer,
             received_packet_buffer: VecDeque::new(),
             network_joined,
-            node_type,
+            node_type: node_type.clone(),
             table: HashMap::new(),
             packet_num_cnt: 0,
             parent_id: None,
@@ -65,7 +65,7 @@ impl DefaultFunction {
     }
 
     pub fn push_new_packet(&mut self, packet: &InjectionPacket) {
-        let dest_vid = get_vid(packet.dest_id.clone()).unwrap();
+        let dest_vid = get_vid(&packet.dest_id).unwrap();
         let channel_id = self.channel_id(dest_vid);
         let next_vid = self.next_node_id(dest_vid, channel_id);
 
@@ -132,11 +132,11 @@ impl DefaultFunction {
     }
 
     pub fn forward_flit(&mut self, flit: &Flit) -> Flit {
-        let dest_vid = get_vid(flit.get_dest_id().unwrap()).unwrap();
+        let dest_vid = get_vid(&flit.get_dest_id().unwrap()).unwrap();
         let next_vid = self.next_node_id(dest_vid, flit.get_channel_id().unwrap());
 
-        let source_vid = get_vid(flit.get_source_id().unwrap()).unwrap();
-        let prev_vid = get_vid(flit.get_prev_id().unwrap()).unwrap();
+        let source_vid = get_vid(&flit.get_source_id().unwrap()).unwrap();
+        let prev_vid = get_vid(&flit.get_prev_id().unwrap()).unwrap();
 
         self.update_table(source_vid, prev_vid);
 
@@ -145,12 +145,12 @@ impl DefaultFunction {
         let mut new_flit = flit.clone();
 
         let _ = new_flit
-            .set_prev_id(flit.get_next_id().unwrap())
+            .set_prev_id(&flit.get_next_id().unwrap())
             .map_err(|e| {
                 panic!("error occured while setting prev_id: {e:?}");
             });
 
-        let _ = new_flit.set_next_id(next_pid).map_err(|e| {
+        let _ = new_flit.set_next_id(&next_pid).map_err(|e| {
             panic!("error occured while setting next_id: {e:?}");
         });
 
@@ -493,12 +493,10 @@ impl DefaultFunction {
 
 #[cfg(test)]
 mod tests {
-    // process_received_packet_coordinatorをテスト
-
     use super::*;
     #[test]
     fn test_process_received_packet_coordinator() {
-        let mut protocol = DefaultFunction::new(NodeType::Coordinator);
+        let mut protocol = DefaultFunction::new(&NodeType::Coordinator);
         let rec_packet = DefaultPacket {
             message: "preq".to_string(),
             packet_id: 0,
@@ -518,7 +516,7 @@ mod tests {
     // process_received_packet_routerをテスト
     #[test]
     fn test_process_received_packet_router() {
-        let mut protocol = DefaultFunction::new(NodeType::Router);
+        let mut protocol = DefaultFunction::new(&NodeType::Router);
         protocol.network_joined = true;
         let rec_packet = DefaultPacket {
             message: "preq".to_string(),

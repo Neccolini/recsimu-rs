@@ -11,11 +11,11 @@ pub struct Nodes {
 }
 
 impl Nodes {
-    pub fn new(nodes: Vec<Node>, neighbors: HashMap<NodeId, Vec<NodeId>>) -> Self {
+    pub fn new(nodes: &[Node], neighbors: &HashMap<NodeId, Vec<NodeId>>) -> Self {
         Self {
-            nodes,
+            nodes: nodes.to_owned(),
             flit_buffers: HashMap::new(),
-            neighbors,
+            neighbors: neighbors.clone(),
         }
     }
 
@@ -128,7 +128,7 @@ mod tests {
     #[test]
     fn test_run_cycle() {
         // node1からnode2へのパケットを作成
-        add_to_vid_table(u32::MAX, "broadcast".to_string());
+        add_to_vid_table(u32::MAX, "broadcast");
 
         let packets: HashMap<u32, InjectionPacket> = HashMap::new();
 
@@ -137,25 +137,25 @@ mod tests {
         neighbors.insert("node2".to_string(), vec!["node1".to_string()]);
 
         let mut nodes = Nodes::new(
-            vec![
+            &vec![
                 Node::new(
-                    "node1".to_string(),
+                    "node1",
                     1,
-                    Switching::StoreAndForward,
-                    "default".to_string(),
-                    NodeType::Coordinator,
-                    packets,
+                    &Switching::StoreAndForward,
+                    "default",
+                    &NodeType::Coordinator,
+                    &packets,
                 ),
                 Node::new(
-                    "node2".to_string(),
+                    "node2",
                     1,
-                    Switching::StoreAndForward,
-                    "default".to_string(),
-                    NodeType::Router,
-                    HashMap::new(),
+                    &Switching::StoreAndForward,
+                    "default",
+                    &NodeType::Router,
+                    &HashMap::new(),
                 ),
             ],
-            neighbors,
+            &neighbors,
         );
 
         nodes.run_cycle(0);

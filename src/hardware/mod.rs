@@ -10,7 +10,7 @@ use self::{
 use crate::network::flit::{AckFlit, Flit};
 use rand::Rng;
 
-#[derive(Default)]
+#[derive(Default, Clone, Debug)]
 pub struct Hardware {
     id: String,
     pub state: NodeState,
@@ -22,9 +22,9 @@ pub struct Hardware {
 }
 
 impl Hardware {
-    pub fn new(id: String, switching: Switching) -> Self {
+    pub fn new(id: &str, switching: &Switching) -> Self {
         Self {
-            id,
+            id: id.to_string(),
             state: NodeState::default(),
             retransmission_buffer: Flit::default(),
             ack_buffer: Flit::default(),
@@ -241,7 +241,7 @@ mod tests {
     use crate::network::flit::{DataFlit, HeaderFlit};
     #[test]
     fn test_send_flit() {
-        let mut hardware = Hardware::new("source_id".to_string(), Switching::StoreAndForward);
+        let mut hardware = Hardware::new("source_id", &Switching::StoreAndForward);
 
         // データフリットを送信する
         let flit = Flit::Data(DataFlit {
@@ -260,7 +260,7 @@ mod tests {
         assert_eq!(sended_flit, flit.clone());
         assert_eq!(hardware.retransmission_buffer, flit.clone());
 
-        let mut hardware = Hardware::new("source_id".to_string(), Switching::CutThrough);
+        let mut hardware = Hardware::new("source_id", &Switching::CutThrough);
 
         let sended_flit = hardware.send_flit(&flit).unwrap();
         assert_eq!(sended_flit, flit.clone());
@@ -269,7 +269,7 @@ mod tests {
 
     #[test]
     fn test_receive_flit() {
-        let mut hardware = Hardware::new("dest_id".to_string(), Switching::StoreAndForward);
+        let mut hardware = Hardware::new("dest_id", &Switching::StoreAndForward);
 
         // データフリットを受信する
         let flit = Flit::Header(HeaderFlit {
@@ -288,7 +288,7 @@ mod tests {
         assert_eq!(hardware.ack_buffer.is_empty(), false);
         assert_eq!(hardware.ack_buffer.is_ack(), true);
 
-        let mut hardware = Hardware::new("dest_id".to_string(), Switching::CutThrough);
+        let mut hardware = Hardware::new("dest_id", &Switching::CutThrough);
 
         let received_flit = hardware.receive_flit(&flit).unwrap();
         assert_eq!(received_flit, Some(flit.clone()));
@@ -299,7 +299,7 @@ mod tests {
     // calc_wait_cyclesのテスト
     #[test]
     fn test_calc_wait_cycles() {
-        let mut hardware = Hardware::new("dest_id".to_string(), Switching::StoreAndForward);
+        let mut hardware = Hardware::new("dest_id", &Switching::StoreAndForward);
         hardware.state.set_resend_times(0);
         assert_eq!(hardware.calc_wait_cycles(), 2);
 

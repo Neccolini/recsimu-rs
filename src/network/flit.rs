@@ -2,10 +2,6 @@ use crate::hardware::constants::DATA_BYTE_PER_FLIT;
 use crate::network::ChannelId;
 use crate::utils::div_ceil;
 use std::error;
-use uuid::Uuid;
-
-pub type PacketId = Uuid;
-pub type NodeId = String;
 
 #[derive(Clone, Default, Debug, PartialEq)]
 pub enum Flit {
@@ -56,12 +52,12 @@ impl Flit {
         *self = Flit::Empty;
     }
 
-    pub fn set_next_id(&mut self, next_id: String) -> Result<(), Box<dyn error::Error>> {
+    pub fn set_next_id(&mut self, next_id: &str) -> Result<(), Box<dyn error::Error>> {
         match self {
-            Flit::Header(flit) => flit.next_id = next_id,
-            Flit::Data(flit) => flit.next_id = next_id,
-            Flit::Tail(flit) => flit.next_id = next_id,
-            Flit::Ack(flit) => flit.dest_id = next_id,
+            Flit::Header(flit) => flit.next_id = next_id.to_string(),
+            Flit::Data(flit) => flit.next_id = next_id.to_string(),
+            Flit::Tail(flit) => flit.next_id = next_id.to_string(),
+            Flit::Ack(flit) => flit.dest_id = next_id.to_string(),
             Flit::Empty => {
                 dbg!("flit is empty");
                 return Err("flit is empty".into());
@@ -70,12 +66,12 @@ impl Flit {
         Ok(())
     }
 
-    pub fn set_prev_id(&mut self, prev_id: String) -> Result<(), Box<dyn error::Error>> {
+    pub fn set_prev_id(&mut self, prev_id: &str) -> Result<(), Box<dyn error::Error>> {
         match self {
-            Flit::Header(flit) => flit.prev_id = prev_id,
-            Flit::Data(flit) => flit.prev_id = prev_id,
-            Flit::Tail(flit) => flit.prev_id = prev_id,
-            Flit::Ack(flit) => flit.source_id = prev_id,
+            Flit::Header(flit) => flit.prev_id = prev_id.to_string(),
+            Flit::Data(flit) => flit.prev_id = prev_id.to_string(),
+            Flit::Tail(flit) => flit.prev_id = prev_id.to_string(),
+            Flit::Ack(flit) => flit.source_id = prev_id.to_string(),
             Flit::Empty => {
                 dbg!("flit is empty");
                 return Err("flit is empty".into());
@@ -84,7 +80,7 @@ impl Flit {
         Ok(())
     }
 
-    pub fn get_source_id(&self) -> Option<NodeId> {
+    pub fn get_source_id(&self) -> Option<String> {
         match self {
             Flit::Header(flit) => Some(flit.source_id.clone()),
             Flit::Data(flit) => Some(flit.source_id.clone()),
@@ -94,7 +90,7 @@ impl Flit {
         }
     }
 
-    pub fn get_prev_id(&self) -> Option<NodeId> {
+    pub fn get_prev_id(&self) -> Option<String> {
         match self {
             Flit::Header(flit) => Some(flit.prev_id.clone()),
             Flit::Data(flit) => Some(flit.prev_id.clone()),
@@ -104,7 +100,7 @@ impl Flit {
         }
     }
 
-    pub fn get_next_id(&self) -> Option<NodeId> {
+    pub fn get_next_id(&self) -> Option<String> {
         match self {
             Flit::Header(flit) => Some(flit.next_id.clone()),
             Flit::Data(flit) => Some(flit.next_id.clone()),
@@ -114,7 +110,7 @@ impl Flit {
         }
     }
 
-    pub fn get_dest_id(&self) -> Option<NodeId> {
+    pub fn get_dest_id(&self) -> Option<String> {
         match self {
             Flit::Header(flit) => Some(flit.dest_id.clone()),
             Flit::Data(flit) => Some(flit.dest_id.clone()),
@@ -167,10 +163,10 @@ impl Flit {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct HeaderFlit {
-    pub source_id: NodeId,
-    pub dest_id: NodeId,
-    pub next_id: NodeId,
-    pub prev_id: NodeId,
+    pub source_id: String,
+    pub dest_id: String,
+    pub next_id: String,
+    pub prev_id: String,
     pub packet_id: u32,
     pub flits_len: u32,
     pub data: Vec<u8>,
@@ -179,10 +175,10 @@ pub struct HeaderFlit {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct TailFlit {
-    pub source_id: NodeId,
-    pub dest_id: NodeId,
-    pub next_id: NodeId,
-    pub prev_id: NodeId,
+    pub source_id: String,
+    pub dest_id: String,
+    pub next_id: String,
+    pub prev_id: String,
     pub flit_num: u32,
     pub resend_num: u8,
     pub data: Vec<u8>,
@@ -192,10 +188,10 @@ pub struct TailFlit {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct DataFlit {
-    pub source_id: NodeId,
-    pub dest_id: NodeId,
-    pub next_id: NodeId,
-    pub prev_id: NodeId,
+    pub source_id: String,
+    pub dest_id: String,
+    pub next_id: String,
+    pub prev_id: String,
     pub flit_num: u32,
     pub resend_num: u8,
     pub data: Vec<u8>,
@@ -205,8 +201,8 @@ pub struct DataFlit {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct AckFlit {
-    pub source_id: NodeId,
-    pub dest_id: NodeId,
+    pub source_id: String,
+    pub dest_id: String,
     pub packet_id: u32,
     pub flit_num: u32,
     pub channel_id: ChannelId,
@@ -214,10 +210,10 @@ pub struct AckFlit {
 
 pub fn data_to_flits(
     data: Vec<u8>,
-    source_id: NodeId,
-    dest_id: NodeId,
-    next_id: NodeId,
-    prev_id: NodeId,
+    source_id: &str,
+    dest_id: &str,
+    next_id: &str,
+    prev_id: &str,
     packet_id: u32,
     channel_id: ChannelId,
 ) -> Vec<Flit> {
@@ -228,10 +224,10 @@ pub fn data_to_flits(
     for (flit_num, data_chunk) in data.chunks(DATA_BYTE_PER_FLIT as usize).enumerate() {
         if flit_num == 0 {
             flits.push(Flit::Header(HeaderFlit {
-                source_id: source_id.clone(),
-                dest_id: dest_id.clone(),
-                next_id: next_id.clone(),
-                prev_id: prev_id.clone(),
+                source_id: source_id.to_string(),
+                dest_id: dest_id.to_string(),
+                next_id: next_id.to_string(),
+                prev_id: prev_id.to_string(),
                 packet_id,
                 data: data_chunk.to_vec(),
                 flits_len,
@@ -240,10 +236,10 @@ pub fn data_to_flits(
             continue;
         } else if flit_num == flits_len as usize - 1 {
             flits.push(Flit::Tail(TailFlit {
-                source_id,
-                dest_id,
-                next_id,
-                prev_id,
+                source_id: source_id.to_string(),
+                dest_id: dest_id.to_string(),
+                next_id: next_id.to_string(),
+                prev_id: prev_id.to_string(),
                 flit_num: flit_num as u32 + 1,
                 resend_num: 0,
                 data: data_chunk.to_vec(),
@@ -253,10 +249,10 @@ pub fn data_to_flits(
             break;
         }
         flits.push(Flit::Data(DataFlit {
-            source_id: source_id.clone(),
-            dest_id: dest_id.clone(),
-            next_id: next_id.clone(),
-            prev_id: prev_id.clone(),
+            source_id: source_id.to_string(),
+            dest_id: dest_id.to_string(),
+            next_id: next_id.to_string(),
+            prev_id: prev_id.to_string(),
             flit_num: flit_num as u32 + 1,
             resend_num: 0,
             data: data_chunk.to_vec(),
@@ -285,22 +281,7 @@ mod tests {
     use super::*;
     #[test]
     fn test_data_to_flits() {
-        let data = vec![0; 100];
-        let source_id = "source".to_string();
-        let dest_id = "dest".to_string();
-        let next_id = "next".to_string();
-        let prev_id = next_id.clone();
-        let packet_id = 0;
-        let channel_id = 0;
-        let flits = data_to_flits(
-            data,
-            source_id.clone(),
-            dest_id.clone(),
-            next_id.clone(),
-            prev_id.clone(),
-            packet_id,
-            channel_id,
-        );
+        let flits = data_to_flits(vec![0; 100], "source", "dest", "next", "next", 0, 0);
         match DATA_BYTE_PER_FLIT {
             32 => {
                 assert_eq!(flits.len(), 5);
@@ -320,22 +301,7 @@ mod tests {
     }
     #[test]
     fn test_flits_to_data() {
-        let data = vec![0; 100];
-        let source_id = "source".to_string();
-        let dest_id = "dest".to_string();
-        let next_id = "next".to_string();
-        let prev_id = next_id.clone();
-        let packet_id = 0;
-        let channel_id = 0;
-        let flits = data_to_flits(
-            data,
-            source_id.clone(),
-            dest_id.clone(),
-            next_id.clone(),
-            prev_id.clone(),
-            packet_id,
-            channel_id,
-        );
+        let flits = data_to_flits(vec![0; 100], "source", "dest", "next", "next", 0, 0);
 
         let data = flits_to_data(&flits);
         assert_eq!(data.len(), 100);
