@@ -7,7 +7,7 @@ use crate::hardware::switching::Switching;
 use crate::log::{get_all_log, Log};
 use crate::network::core_functions::packets::InjectionPacket;
 use std::collections::HashMap;
-use std::{error, path::PathBuf};
+use std::{error, path::Path, path::PathBuf};
 
 use self::node::Node;
 use self::node_type::NodeType;
@@ -21,9 +21,9 @@ pub struct SimBuilder {
 }
 
 impl SimBuilder {
-    pub fn new(path: &PathBuf, verbose: bool) -> Self {
+    pub fn new(path: &Path, verbose: bool) -> Self {
         Self {
-            path: path.clone(),
+            path: path.to_path_buf(),
             verbose,
         }
     }

@@ -11,9 +11,9 @@ pub struct Nodes {
 }
 
 impl Nodes {
-    pub fn new(nodes: &Vec<Node>, neighbors: &HashMap<NodeId, Vec<NodeId>>) -> Self {
+    pub fn new(nodes: &[Node], neighbors: &HashMap<NodeId, Vec<NodeId>>) -> Self {
         Self {
-            nodes: nodes.clone(),
+            nodes: nodes.to_owned(),
             flit_buffers: HashMap::new(),
             neighbors: neighbors.clone(),
         }
