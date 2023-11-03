@@ -2,61 +2,62 @@ pub mod default;
 pub mod packets;
 
 use crate::{
-    network::flit::Flit, network::protocols::default::DefaultProtocol, sim::node_type::NodeType,
+    network::core_functions::default::DefaultFunction, network::flit::Flit,
+    sim::node_type::NodeType,
 };
 
 use self::packets::{GeneralPacket, InjectionPacket};
 
-pub enum NetworkProtocol {
-    DefaultFunction(DefaultProtocol),
+pub enum CoreFunction {
+    DefaultFunction(DefaultFunction),
 }
 
-impl NetworkProtocol {
+impl CoreFunction {
     pub(crate) fn new(rf_kind: String, node_type: NodeType) -> Self {
         #[allow(clippy::match_single_binding)]
         match rf_kind.as_str() {
-            _ => NetworkProtocol::DefaultFunction(DefaultProtocol::new(node_type)),
+            _ => CoreFunction::DefaultFunction(DefaultFunction::new(node_type)),
         }
     }
 
     pub(crate) fn update(&mut self) {
         match self {
-            NetworkProtocol::DefaultFunction(rf) => rf.update(),
+            CoreFunction::DefaultFunction(rf) => rf.update(),
         }
     }
 
     pub(crate) fn push_new_packet(&mut self, packet: &InjectionPacket) {
         match self {
-            NetworkProtocol::DefaultFunction(rf) => rf.push_new_packet(packet),
+            CoreFunction::DefaultFunction(rf) => rf.push_new_packet(packet),
         }
     }
 
     pub(crate) fn send_packet(&mut self) -> Option<GeneralPacket> {
         match self {
-            NetworkProtocol::DefaultFunction(rf) => rf.send_packet(),
+            CoreFunction::DefaultFunction(rf) => rf.send_packet(),
         }
     }
 
     pub(crate) fn receive_packet(&mut self, packet: &GeneralPacket) {
         match self {
-            NetworkProtocol::DefaultFunction(rf) => rf.receive_packet(packet),
+            CoreFunction::DefaultFunction(rf) => rf.receive_packet(packet),
         }
     }
 
     pub(crate) fn forward_flit(&mut self, flit: &Flit) -> Flit {
         match self {
-            NetworkProtocol::DefaultFunction(rf) => rf.forward_flit(flit),
+            CoreFunction::DefaultFunction(rf) => rf.forward_flit(flit),
         }
     }
 
     pub(crate) fn get_id(&self) -> u32 {
         match self {
-            NetworkProtocol::DefaultFunction(rf) => rf.id,
+            CoreFunction::DefaultFunction(rf) => rf.id,
         }
     }
 }
 
-impl Default for NetworkProtocol {
+impl Default for CoreFunction {
     fn default() -> Self {
         Self::new("".to_string(), NodeType::Router)
     }

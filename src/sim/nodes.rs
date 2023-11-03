@@ -18,6 +18,7 @@ impl Nodes {
             neighbors,
         }
     }
+
     pub fn run_cycle(&mut self, cur_cycle: u32) {
         dbg!(cur_cycle);
         // 各ノードの状態を更新する
@@ -26,6 +27,7 @@ impl Nodes {
         // 各ノードのメッセージを処理する
         self.message_handle(cur_cycle);
     }
+
     fn message_handle(&mut self, cur_cycle: u32) {
         // 送信状態のノードはflitを送信
         for node in self.nodes.iter_mut() {
@@ -119,7 +121,7 @@ impl Nodes {
 mod tests {
     use super::*;
     use crate::hardware::switching::Switching;
-    use crate::network::protocols::packets::InjectionPacket;
+    use crate::network::core_functions::packets::InjectionPacket;
     use crate::network::vid::add_to_vid_table;
     use crate::sim::NodeType;
 

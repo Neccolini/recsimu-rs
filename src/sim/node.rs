@@ -3,8 +3,8 @@ use std::collections::HashMap;
 use crate::hardware::state::State;
 use crate::hardware::switching::Switching;
 use crate::hardware::Hardware;
+use crate::network::core_functions::packets::InjectionPacket;
 use crate::network::flit::Flit;
-use crate::network::protocols::packets::InjectionPacket;
 use crate::network::Network;
 use crate::sim::node_type::NodeType;
 
@@ -14,8 +14,7 @@ pub type CycleNum = u32;
 pub struct Node {
     pub id: NodeId,
     pub node_type: NodeType,
-    pub alive: bool,
-    pub network: Network,
+    network: Network,
     pub hardware: Hardware,
     pub packets: HashMap<CycleNum, InjectionPacket>,
     cur_cycle: u32,
@@ -33,7 +32,6 @@ impl Node {
         Self {
             id: id.clone(),
             node_type: node_type.clone(),
-            alive: true,
             network: Network::new(id.clone(), vc_num, switching.clone(), rf_kind, node_type),
             hardware: Hardware::new(id, switching),
             packets,

@@ -12,10 +12,10 @@ use rand::Rng;
 
 #[derive(Default)]
 pub struct Hardware {
-    pub id: String,
+    id: String,
     pub state: NodeState,
     pub retransmission_buffer: Flit,
-    pub ack_buffer: Flit,
+    ack_buffer: Flit,
     received_msg_is_broadcast: bool,
     received_msg_is_ack: bool,
     blocking: blocking::Blocking,
@@ -73,22 +73,8 @@ impl Hardware {
         }
 
         match flit {
-            Flit::Header(_) => {
-                let _ack = self.ack_gen(flit)?;
-
-                self.received_msg_is_ack = false;
-
-                Ok(Some(flit.clone()))
-            }
-            Flit::Data(_) => {
-                let _ack = self.ack_gen(flit)?;
-
-                self.received_msg_is_ack = false;
-
-                Ok(Some(flit.clone()))
-            }
-            Flit::Tail(_) => {
-                let _ack = self.ack_gen(flit)?;
+            Flit::Header(_) | Flit::Data(_) | Flit::Tail(_) => {
+                let _ack = self.gen_ack(flit)?;
 
                 self.received_msg_is_ack = false;
 
@@ -96,7 +82,6 @@ impl Hardware {
             }
             Flit::Ack(_) => {
                 let _ack = self.receive_ack(flit)?;
-                // self.ack_buffer = ack; // todo 右辺はNoneでは？
 
                 self.received_msg_is_ack = true;
 
@@ -166,17 +151,13 @@ impl Hardware {
     pub fn set_state(&mut self, state: &State) {
         self.state.next(state);
     }
-
-    pub fn check_flit(&self, _flit: &Flit) -> Result<Option<Flit>, Box<dyn std::error::Error>> {
-        unimplemented!();
-    }
 }
 
 // 外部に公開しない関数
 impl Hardware {
-    fn ack_gen(&mut self, flit: &Flit) -> Result<Flit, Box<dyn std::error::Error>> {
+    fn gen_ack(&mut self, flit: &Flit) -> Result<Flit, Box<dyn std::error::Error>> {
         if let Flit::Ack(_) = flit {
-            return Err("ack_gen: flit is ack".into());
+            return Err("gen_ack: flit is ack".into());
         }
 
         // flitの中身を取り出す

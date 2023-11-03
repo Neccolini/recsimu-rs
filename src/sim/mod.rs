@@ -5,7 +5,7 @@ pub mod nodes;
 use crate::file::InputFile;
 use crate::hardware::switching::Switching;
 use crate::log::{get_all_log, Log};
-use crate::network::protocols::packets::InjectionPacket;
+use crate::network::core_functions::packets::InjectionPacket;
 use std::collections::HashMap;
 use std::{error, path::PathBuf};
 
