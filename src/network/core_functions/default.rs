@@ -1,6 +1,6 @@
 use super::packets::{GeneralPacket, InjectionPacket};
+use crate::network::core_functions::packets::DefaultPacket;
 use crate::network::flit::Flit;
-use crate::network::protocols::packets::DefaultPacket;
 use crate::network::vid::get_pid;
 use crate::network::vid::get_vid;
 use crate::sim::node_type::NodeType;
@@ -11,7 +11,7 @@ const COORDINATOR_ID: u32 = 0;
 
 #[derive(Clone, Debug)]
 #[allow(dead_code)]
-pub struct DefaultProtocol {
+pub struct DefaultFunction {
     pub(crate) id: u32,
     send_packet_buffer: VecDeque<DefaultPacket>,
     received_packet_buffer: VecDeque<DefaultPacket>,
@@ -23,7 +23,7 @@ pub struct DefaultProtocol {
     children_id: Vec<u32>,
 }
 
-impl DefaultProtocol {
+impl DefaultFunction {
     pub fn new(node_type: NodeType) -> Self {
         let mut network_joined = false;
         let mut id = 0;
@@ -47,7 +47,7 @@ impl DefaultProtocol {
             });
         }
 
-        DefaultProtocol {
+        DefaultFunction {
             id,
             send_packet_buffer,
             received_packet_buffer: VecDeque::new(),
@@ -160,7 +160,7 @@ impl DefaultProtocol {
 
 // private functions
 #[allow(unused_variables)]
-impl DefaultProtocol {
+impl DefaultFunction {
     fn next_node_id(&self, dest_id: u32, channel_id: u32) -> u32 {
         // tableにdest_idがあればそれに対応するnode_idを返す
         // なければparent_idを返す
@@ -498,7 +498,7 @@ mod tests {
     use super::*;
     #[test]
     fn test_process_received_packet_coordinator() {
-        let mut protocol = DefaultProtocol::new(NodeType::Coordinator);
+        let mut protocol = DefaultFunction::new(NodeType::Coordinator);
         let rec_packet = DefaultPacket {
             message: "preq".to_string(),
             packet_id: 0,
@@ -518,7 +518,7 @@ mod tests {
     // process_received_packet_routerをテスト
     #[test]
     fn test_process_received_packet_router() {
-        let mut protocol = DefaultProtocol::new(NodeType::Router);
+        let mut protocol = DefaultFunction::new(NodeType::Router);
         protocol.network_joined = true;
         let rec_packet = DefaultPacket {
             message: "preq".to_string(),

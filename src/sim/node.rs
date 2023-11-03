@@ -3,8 +3,8 @@ use std::collections::HashMap;
 use crate::hardware::state::State;
 use crate::hardware::switching::Switching;
 use crate::hardware::Hardware;
+use crate::network::core_functions::packets::InjectionPacket;
 use crate::network::flit::Flit;
-use crate::network::protocols::packets::InjectionPacket;
 use crate::network::Network;
 use crate::sim::node_type::NodeType;
 

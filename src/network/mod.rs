@@ -1,20 +1,20 @@
+pub mod core_functions;
 pub mod flit;
 pub mod flit_buffer;
-pub mod protocols;
 pub mod vid;
 
+use self::core_functions::packets::DefaultPacket;
+use self::core_functions::packets::InjectionPacket;
+use self::core_functions::CoreFunction;
 use self::flit::data_to_flits;
 use self::flit_buffer::{FlitBuffer, ReceivedFlitsBuffer};
-use self::protocols::packets::DefaultPacket;
-use self::protocols::packets::InjectionPacket;
-use self::protocols::NetworkProtocol;
 use self::vid::*;
 use crate::hardware::switching::Switching;
 use crate::log::{
     get_packet_log, post_new_packet_log, update_packet_log, NewPacketLogInfo, UpdatePacketLogInfo,
 };
+use crate::network::core_functions::packets::GeneralPacket;
 use crate::network::flit::Flit;
-use crate::network::protocols::packets::GeneralPacket;
 use crate::sim::node_type::NodeType;
 use std::collections::HashMap;
 
@@ -24,7 +24,7 @@ pub struct Network {
     id: String,
     cur_cycle: u32,
     switching: Switching,
-    routing: NetworkProtocol,
+    core: CoreFunction,
     sending_flit_buffer: HashMap<ChannelId, FlitBuffer>,
     receiving_flit_buffer: HashMap<ChannelId, FlitBuffer>,
     received_flits_buffer: ReceivedFlitsBuffer,
@@ -47,8 +47,8 @@ impl Network {
             sending_flit_buffer.insert(i, FlitBuffer::new());
             receiving_flit_buffer.insert(i, FlitBuffer::new());
         }
-        let routing = NetworkProtocol::new(rf_kind, node_type);
-        let vid = routing.get_id();
+        let core = CoreFunction::new(rf_kind, node_type);
+        let vid = core.get_id();
 
         add_to_vid_table(vid, id.clone());
 
@@ -56,7 +56,7 @@ impl Network {
             id,
             cur_cycle: 0,
             switching,
-            routing,
+            core,
             sending_flit_buffer,
             receiving_flit_buffer,
             received_flits_buffer: ReceivedFlitsBuffer::new(),
@@ -71,10 +71,10 @@ impl Network {
     pub fn update(&mut self, cur_cycle: u32) {
         self.cur_cycle = cur_cycle;
 
-        self.routing.update();
+        self.core.update();
 
         // 送信待ちのパケットを取りに行く
-        if let Some(packet) = self.routing.send_packet() {
+        if let Some(packet) = self.core.send_packet() {
             // packetをフリットに変換する
             let flits = data_to_flits(
                 packet.data.clone(),
@@ -129,7 +129,7 @@ impl Network {
                     )
                     .unwrap();
 
-                self.routing.receive_packet(&packet);
+                self.core.receive_packet(&packet);
 
                 self.log_handler(&packet);
             }
@@ -154,7 +154,7 @@ impl Network {
     }
 
     pub fn send_new_packet(&mut self, packet: &InjectionPacket) {
-        self.routing.push_new_packet(packet);
+        self.core.push_new_packet(packet);
     }
 }
 
@@ -167,7 +167,7 @@ impl Network {
             .unwrap()
             .pop()
         {
-            let new_flit = self.routing.forward_flit(&flit);
+            let new_flit = self.core.forward_flit(&flit);
             let channel_id = new_flit.get_channel_id().unwrap();
 
             self.sending_flit_buffer
@@ -203,8 +203,8 @@ impl Network {
     }
 
     fn get_message(&self, packet: &GeneralPacket) -> String {
-        match self.routing {
-            NetworkProtocol::DefaultFunction(_) => {
+        match self.core {
+            CoreFunction::DefaultFunction(_) => {
                 let p = DefaultPacket::from_general(packet);
                 p.message
             }
@@ -215,7 +215,7 @@ impl Network {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::network::protocols::packets::InjectionPacket;
+    use crate::network::core_functions::packets::InjectionPacket;
 
     #[test]
     fn test_send_flit1() {

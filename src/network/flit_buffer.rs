@@ -3,7 +3,7 @@ use crate::network::flit::Flit;
 use std::collections::HashMap;
 use std::collections::VecDeque;
 
-use super::protocols::packets::GeneralPacket;
+use super::core_functions::packets::GeneralPacket;
 
 #[derive(Debug, Clone)]
 pub struct FlitBuffer {

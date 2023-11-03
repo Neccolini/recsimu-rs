@@ -121,7 +121,7 @@ impl Nodes {
 mod tests {
     use super::*;
     use crate::hardware::switching::Switching;
-    use crate::network::protocols::packets::InjectionPacket;
+    use crate::network::core_functions::packets::InjectionPacket;
     use crate::network::vid::add_to_vid_table;
     use crate::sim::NodeType;
 
