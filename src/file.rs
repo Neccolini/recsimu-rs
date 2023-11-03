@@ -33,6 +33,6 @@ impl InputFile {
         // pathからファイルを読み込み、InputFileを作成する
         read_json::<InputFile>(path.clone())
             .map_err(|e| panic!("erro while reading {path:?}: {}", e))
-            .unwrap()
+            .expect("failed to read json file")
     }
 }

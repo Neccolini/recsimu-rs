@@ -99,7 +99,7 @@ pub fn post_new_packet_log(
     };
 
     LOG.lock()
-        .unwrap()
+        .expect("failed to lock log")
         .packets_info
         .insert(id, packet_log.clone());
 
@@ -135,9 +135,12 @@ pub fn update_packet_log(
     packet_id: String,
     update_packet_log: UpdatePacketLogInfo,
 ) -> Result<PacketLog, Box<dyn error::Error>> {
-    let mut log = LOG.lock().unwrap();
+    let mut log = LOG.lock().expect("failed to lock log");
 
-    let packet_log = log.packets_info.get_mut(&packet_id).unwrap();
+    let packet_log = log
+        .packets_info
+        .get_mut(&packet_id)
+        .expect("specified packet not found");
 
     if let Some(last_receive_cycle) = &update_packet_log.last_receive_cycle {
         packet_log.last_receive_cycle = Some(*last_receive_cycle);
@@ -155,12 +158,12 @@ pub fn update_packet_log(
 }
 
 pub fn get_packet_log(packet_id: &String) -> Option<PacketLog> {
-    let log = LOG.lock().unwrap();
+    let log = LOG.lock().expect("failed to lock log");
     log.packets_info.get(packet_id).cloned()
 }
 
 pub fn get_all_log() -> Vec<PacketLog> {
-    let log = LOG.lock().unwrap();
+    let log = LOG.lock().expect("failed to lock log");
 
     log.packets_info.values().cloned().collect()
 }
