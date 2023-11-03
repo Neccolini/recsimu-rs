@@ -20,6 +20,7 @@ use std::collections::HashMap;
 
 pub type ChannelId = u32;
 
+#[derive(Debug, Clone)]
 pub struct Network {
     id: String,
     cur_cycle: u32,
@@ -32,11 +33,11 @@ pub struct Network {
 
 impl Network {
     pub fn new(
-        id: String,
+        id: &str,
         vc_num: ChannelId,
-        switching: Switching,
-        rf_kind: String,
-        node_type: NodeType,
+        switching: &Switching,
+        rf_kind: &str,
+        node_type: &NodeType,
     ) -> Self {
         // sending_flit_bufferとreceiving_flit_bufferを初期化する
         // 0...vc_num-1のchannel_idを持つFlitBufferを生成する
@@ -50,12 +51,12 @@ impl Network {
         let core = CoreFunction::new(rf_kind, node_type);
         let vid = core.get_id();
 
-        add_to_vid_table(vid, id.clone());
+        add_to_vid_table(vid, id);
 
         Self {
-            id,
+            id: id.to_string(),
             cur_cycle: 0,
-            switching,
+            switching: switching.clone(),
             core,
             sending_flit_buffer,
             receiving_flit_buffer,
@@ -78,10 +79,10 @@ impl Network {
             // packetをフリットに変換する
             let flits = data_to_flits(
                 packet.data.clone(),
-                packet.source_id.clone(),
-                packet.dest_id.clone(),
-                packet.next_id.clone(),
-                packet.prev_id.clone(),
+                &packet.source_id,
+                &packet.dest_id,
+                &packet.next_id,
+                &packet.prev_id,
                 packet.packet_id,
                 packet.channel_id,
             );
@@ -95,7 +96,7 @@ impl Network {
                 self.sending_flit_buffer
                     .get_mut(&channel_id)
                     .unwrap()
-                    .push(flit);
+                    .push(&flit);
             }
         }
 
@@ -138,7 +139,7 @@ impl Network {
             self.receiving_flit_buffer
                 .get_mut(&channel_id)
                 .unwrap()
-                .push(flit.clone());
+                .push(flit);
 
             if flit.is_tail() || (flit.is_header() && flit.get_flits_len().unwrap_or(0) == 1) {
                 while !self
@@ -177,7 +178,7 @@ impl Network {
             self.sending_flit_buffer
                 .get_mut(&channel_id)
                 .unwrap()
-                .push(new_flit);
+                .push(&new_flit);
         }
     }
 
@@ -223,13 +224,13 @@ mod tests {
 
     #[test]
     fn test_send_flit1() {
-        add_to_vid_table(u32::MAX, "broadcast".to_string());
+        add_to_vid_table(u32::MAX, "broadcast");
         let mut network = Network::new(
-            "test".to_string(),
+            "test",
             1,
-            Switching::StoreAndForward,
-            "default".to_string(),
-            NodeType::Router,
+            &Switching::StoreAndForward,
+            "default",
+            &NodeType::Router,
         );
         let packet = InjectionPacket {
             message: "hello world".to_string(),
@@ -256,13 +257,13 @@ mod tests {
 
     #[test]
     fn test_send_flit2() {
-        add_to_vid_table(u32::MAX, "broadcast".to_string());
+        add_to_vid_table(u32::MAX, "broadcast");
         let mut network = Network::new(
-            "test".to_string(),
+            "test",
             1,
-            Switching::CutThrough,
-            "default".to_string(),
-            NodeType::Router,
+            &Switching::CutThrough,
+            "default",
+            &NodeType::Router,
         );
         let packet = InjectionPacket {
             message: "hello world".to_string(),

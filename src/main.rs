@@ -70,7 +70,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
         Some(("run", run_matches)) => {
             let input = run_matches.get_one::<String>("input_file_path").unwrap();
             let verbose = run_matches.contains_id("verbose");
-            let mut sim = SimBuilder::new(PathBuf::from(input), verbose).build()?;
+            let mut sim = SimBuilder::new(&PathBuf::from(input), verbose).build()?;
 
             sim.run();
         }
@@ -99,7 +99,7 @@ mod tests {
                 let verbose = false;
                 for _ in 0..10 {
                     clear_vid_table();
-                    let mut sim = SimBuilder::new(path.clone(), verbose).build().unwrap();
+                    let mut sim = SimBuilder::new(&path, verbose).build().unwrap();
                     sim.run();
 
                     for node in sim.nodes.nodes.iter() {

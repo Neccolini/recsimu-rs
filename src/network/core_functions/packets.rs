@@ -40,8 +40,8 @@ impl DefaultPacket {
             })
             .unwrap();
 
-        dp.prev_id = get_vid(gp.prev_id.clone()).unwrap();
-        dp.next_id = get_vid(gp.next_id.clone()).unwrap();
+        dp.prev_id = get_vid(&gp.prev_id).unwrap();
+        dp.next_id = get_vid(&gp.next_id).unwrap();
 
         dp
     }

@@ -1,4 +1,4 @@
-#[derive(Default)]
+#[derive(Default, Clone, Debug)]
 pub struct NodeState {
     state: State,
     resend_times: u8,

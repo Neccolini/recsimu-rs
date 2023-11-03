@@ -157,7 +157,7 @@ pub fn update_packet_log(
     Ok(packet_log.clone())
 }
 
-pub fn get_packet_log(packet_id: &String) -> Option<PacketLog> {
+pub fn get_packet_log(packet_id: &str) -> Option<PacketLog> {
     let log = LOG.lock().expect("failed to lock log");
     log.packets_info.get(packet_id).cloned()
 }

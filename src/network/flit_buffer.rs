@@ -17,8 +17,8 @@ impl FlitBuffer {
         }
     }
 
-    pub fn push(&mut self, flit: Flit) {
-        self.flit_buffer.push_back(flit);
+    pub fn push(&mut self, flit: &Flit) {
+        self.flit_buffer.push_back(flit.clone());
     }
 
     pub fn pop(&mut self) -> Option<Flit> {
@@ -77,7 +77,7 @@ impl ReceivedFlitsBuffer {
             self.buffer.insert(key.clone(), FlitBuffer::new());
         }
 
-        self.buffer.get_mut(&key).unwrap().push(flit.clone());
+        self.buffer.get_mut(&key).unwrap().push(flit);
     }
 
     pub fn pop_packet(&mut self, from_id: &str, packet_id: u32) -> Option<GeneralPacket> {
@@ -126,10 +126,10 @@ mod tests {
 
     #[test]
     fn test_flit_buffer() {
-        add_to_vid_table(u32::MAX, "broadcast".to_string());
+        add_to_vid_table(u32::MAX, "broadcast");
         let mut flit_buffer = FlitBuffer::new();
 
-        let flit0 = Flit::Header(HeaderFlit {
+        let flit0 = &Flit::Header(HeaderFlit {
             channel_id: 0,
             packet_id: 0,
             dest_id: "".to_string(),
@@ -139,9 +139,9 @@ mod tests {
             data: vec![],
             flits_len: 0,
         });
-        flit_buffer.push(flit0.clone());
+        flit_buffer.push(flit0);
 
-        let flit1 = Flit::Header(HeaderFlit {
+        let flit1 = &Flit::Header(HeaderFlit {
             channel_id: 0,
             packet_id: 0,
             dest_id: "".to_string(),
@@ -151,9 +151,9 @@ mod tests {
             data: vec![],
             flits_len: 0,
         });
-        flit_buffer.push(flit1.clone());
+        flit_buffer.push(flit1);
 
-        let flit2 = Flit::Header(HeaderFlit {
+        let flit2 = &Flit::Header(HeaderFlit {
             channel_id: 0,
             packet_id: 0,
             dest_id: "".to_string(),
@@ -164,20 +164,20 @@ mod tests {
             flits_len: 0,
         });
 
-        flit_buffer.push(flit2.clone());
+        flit_buffer.push(flit2);
 
-        assert_eq!(flit_buffer.pop(), Some(flit0));
-        assert_eq!(flit_buffer.pop(), Some(flit1));
-        assert_eq!(flit_buffer.pop(), Some(flit2));
+        assert_eq!(flit_buffer.pop(), Some(flit0.clone()));
+        assert_eq!(flit_buffer.pop(), Some(flit1.clone()));
+        assert_eq!(flit_buffer.pop(), Some(flit2.clone()));
         assert_eq!(flit_buffer.pop(), None);
     }
 
     #[test]
     fn test_remove_duplicate_and_sort() {
-        add_to_vid_table(u32::MAX, "broadcast".to_string());
+        add_to_vid_table(u32::MAX, "broadcast");
         let mut flit_buffer = FlitBuffer::new();
 
-        let header_flit = Flit::Header(HeaderFlit {
+        let header_flit = &Flit::Header(HeaderFlit {
             channel_id: 0,
             packet_id: 0,
             dest_id: "".to_string(),
@@ -187,15 +187,15 @@ mod tests {
             data: vec![],
             flits_len: 0,
         });
-        flit_buffer.push(header_flit.clone());
-        flit_buffer.push(header_flit.clone());
+        flit_buffer.push(header_flit);
+        flit_buffer.push(header_flit);
         flit_buffer.remove_duplicate_and_sort();
 
-        assert_eq!(flit_buffer.pop(), Some(header_flit));
+        assert_eq!(flit_buffer.pop(), Some(header_flit.clone()));
         assert_eq!(flit_buffer.pop(), None);
 
         for i in [4, 5, 2, 9, 7, 1, 8, 3, 6, 1, 0, 4] {
-            let data_flit = Flit::Data(crate::network::flit::DataFlit {
+            let data_flit = &Flit::Data(crate::network::flit::DataFlit {
                 channel_id: 0,
                 packet_id: 0,
                 dest_id: "".to_string(),
@@ -206,7 +206,7 @@ mod tests {
                 resend_num: 0,
                 data: vec![],
             });
-            flit_buffer.push(data_flit.clone());
+            flit_buffer.push(data_flit);
         }
 
         flit_buffer.remove_duplicate_and_sort();

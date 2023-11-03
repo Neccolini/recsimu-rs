@@ -11,6 +11,7 @@ use crate::sim::node_type::NodeType;
 pub type NodeId = String;
 pub type CycleNum = u32;
 
+#[derive(Clone, Debug)]
 pub struct Node {
     pub id: NodeId,
     pub node_type: NodeType,
@@ -22,19 +23,19 @@ pub struct Node {
 
 impl Node {
     pub fn new(
-        id: String,
+        id: &str,
         vc_num: u32,
-        switching: Switching,
-        rf_kind: String,
-        node_type: NodeType,
-        packets: HashMap<CycleNum, InjectionPacket>,
+        switching: &Switching,
+        rf_kind: &str,
+        node_type: &NodeType,
+        packets: &HashMap<CycleNum, InjectionPacket>,
     ) -> Self {
         Self {
-            id: id.clone(),
+            id: id.to_string(),
             node_type: node_type.clone(),
-            network: Network::new(id.clone(), vc_num, switching.clone(), rf_kind, node_type),
+            network: Network::new(id, vc_num, switching, rf_kind, node_type),
             hardware: Hardware::new(id, switching),
-            packets,
+            packets: packets.clone(),
             cur_cycle: 0,
         }
     }

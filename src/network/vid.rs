@@ -55,20 +55,20 @@ impl VIDTable {
     }
 }
 
-pub fn add_to_vid_table(vid: u32, pid: String) {
+pub fn add_to_vid_table(vid: u32, pid: &str) {
     let mut table = VID_TABLE.lock().expect("failed to lock VID_TABLE");
-    table.v_to_p.insert(vid, pid.clone());
-    table.p_to_v.insert(pid, vid);
+    table.v_to_p.insert(vid, pid.to_string());
+    table.p_to_v.insert(pid.to_string(), vid);
 }
 
-pub fn remove_from_vid_table(vid: u32, pid: String) {
+pub fn remove_from_vid_table(vid: u32, pid: &str) {
     let mut table = VID_TABLE.lock().expect("failed to lock VID_TABLE");
     table.v_to_p.remove(&vid);
-    table.p_to_v.remove(&pid);
+    table.p_to_v.remove(pid);
 }
 
-pub fn update_vid_table(vid: u32, pid: String) {
-    remove_from_vid_table(vid, pid.clone());
+pub fn update_vid_table(vid: u32, pid: &str) {
+    remove_from_vid_table(vid, pid);
     add_to_vid_table(vid, pid);
 }
 
@@ -78,10 +78,10 @@ pub fn clear_vid_table() {
     table.p_to_v.clear();
 }
 
-pub fn get_vid(pid: String) -> Option<u32> {
+pub fn get_vid(pid: &str) -> Option<u32> {
     let table = VID_TABLE.lock().expect("failed to lock VID_TABLE");
     println!("{:?}", table);
-    table.p_to_v.get(&pid).cloned()
+    table.p_to_v.get(pid).cloned()
 }
 
 pub fn get_pid(vid: u32) -> Option<String> {

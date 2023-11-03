@@ -5,6 +5,7 @@ use super::switching::Switching;
 pub const BLOCK_FLIT: bool = false;
 pub const RECEIVE_FLIT: bool = true;
 
+#[derive(Clone, Debug)]
 pub struct Blocking {
     switching: Switching,
     is_receiving: bool,
@@ -14,9 +15,9 @@ pub struct Blocking {
 }
 
 impl Blocking {
-    pub fn new(switching: Switching) -> Self {
+    pub fn new(switching: &Switching) -> Self {
         Self {
-            switching,
+            switching: switching.clone(),
             is_receiving: false,
             receiving_packet_next_id: "".to_string(),
             receiving_packet_id: 0,
@@ -102,7 +103,7 @@ impl Blocking {
 
 impl Default for Blocking {
     fn default() -> Self {
-        Self::new(Switching::StoreAndForward)
+        Self::new(&Switching::StoreAndForward)
     }
 }
 
@@ -113,7 +114,7 @@ mod tests {
 
     #[test]
     fn test_check_received_flit() {
-        let mut blocking = Blocking::new(Switching::StoreAndForward);
+        let mut blocking = Blocking::new(&Switching::StoreAndForward);
 
         let header_flit = Flit::Header(HeaderFlit {
             source_id: "0".to_string(),
