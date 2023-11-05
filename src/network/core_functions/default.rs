@@ -1,4 +1,4 @@
-use super::packets::{GeneralPacket, InjectionPacket};
+use super::packets::{InjectionPacket, Packet};
 use crate::network::core_functions::packets::DefaultPacket;
 use crate::network::flit::Flit;
 use crate::network::vid::get_pid;
@@ -75,7 +75,7 @@ impl DefaultFunction {
         self.packet_num_cnt += 1;
     }
 
-    pub fn send_packet(&mut self) -> Option<GeneralPacket> {
+    pub fn send_packet(&mut self) -> Option<Packet> {
         if let Some(packet) = self.send_packet_buffer.pop_front() {
             let data = bincode::serialize(&packet)
                 .map_err(|e| {
@@ -88,7 +88,7 @@ impl DefaultFunction {
             let src_pid = get_pid(packet.source_id).unwrap();
             let next_pid = get_pid(packet.next_id).unwrap(); // todo unwrapをなくす
 
-            return Some(GeneralPacket {
+            return Some(Packet {
                 data,
                 packet_id: packet.packet_id,
                 dest_id: dest_pid,
@@ -101,7 +101,7 @@ impl DefaultFunction {
         None
     }
 
-    pub fn receive_packet(&mut self, packet: &GeneralPacket) {
+    pub fn receive_packet(&mut self, packet: &Packet) {
         let packet = DefaultPacket::from_general(packet);
         self.received_packet_buffer.push_back(packet);
     }

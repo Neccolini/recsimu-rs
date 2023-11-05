@@ -6,7 +6,7 @@ use crate::{
     sim::node_type::NodeType,
 };
 
-use self::packets::{GeneralPacket, InjectionPacket};
+use self::packets::{InjectionPacket, Packet};
 
 #[derive(Debug, Clone)]
 pub enum CoreFunction {
@@ -33,13 +33,13 @@ impl CoreFunction {
         }
     }
 
-    pub(crate) fn send_packet(&mut self) -> Option<GeneralPacket> {
+    pub(crate) fn send_packet(&mut self) -> Option<Packet> {
         match self {
             CoreFunction::DefaultFunction(rf) => rf.send_packet(),
         }
     }
 
-    pub(crate) fn receive_packet(&mut self, packet: &GeneralPacket) {
+    pub(crate) fn receive_packet(&mut self, packet: &Packet) {
         match self {
             CoreFunction::DefaultFunction(rf) => rf.receive_packet(packet),
         }

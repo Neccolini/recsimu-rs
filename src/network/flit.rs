@@ -3,7 +3,7 @@ use crate::network::ChannelId;
 use crate::utils::div_ceil;
 use std::error;
 
-use super::core_functions::packets::GeneralPacket;
+use super::core_functions::packets::Packet;
 
 #[derive(Clone, Default, Debug, PartialEq)]
 pub enum Flit {
@@ -210,9 +210,7 @@ pub struct AckFlit {
     pub channel_id: ChannelId,
 }
 
-pub fn packet_to_flits(
-    packet: &GeneralPacket
-) -> Vec<Flit> {
+pub fn packet_to_flits(packet: &Packet) -> Vec<Flit> {
     let mut flits = Vec::new();
     let flits_len = div_ceil(packet.data.len() as u32, DATA_BYTE_PER_FLIT);
 
@@ -277,7 +275,7 @@ mod tests {
     use super::*;
     #[test]
     fn test_data_to_flits() {
-        let flits = packet_to_flits(&GeneralPacket {
+        let flits = packet_to_flits(&Packet {
             data: vec![0; 100],
             dest_id: "dest".to_string(),
             prev_id: "prev".to_string(),
@@ -305,7 +303,7 @@ mod tests {
     }
     #[test]
     fn test_flits_to_data() {
-        let flits = packet_to_flits(&GeneralPacket {
+        let flits = packet_to_flits(&Packet {
             data: vec![0; 100],
             dest_id: "dest".to_string(),
             prev_id: "prev".to_string(),

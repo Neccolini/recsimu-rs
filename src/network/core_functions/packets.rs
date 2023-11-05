@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::network::vid::get_vid;
 #[derive(Debug, Clone)]
-pub struct GeneralPacket {
+pub struct Packet {
     pub data: Vec<u8>,
     pub dest_id: String,
     pub prev_id: String,
@@ -14,7 +14,7 @@ pub struct GeneralPacket {
     pub channel_id: u32,
 }
 
-impl GeneralPacket {
+impl Packet {
     pub fn get_flits_len(&self) -> u32 {
         div_ceil(self.data.len() as u32, DATA_BYTE_PER_FLIT)
     }
@@ -40,7 +40,7 @@ pub(crate) struct DefaultPacket {
 }
 
 impl DefaultPacket {
-    pub(crate) fn from_general(gp: &GeneralPacket) -> Self {
+    pub(crate) fn from_general(gp: &Packet) -> Self {
         // dataをでコード
         let mut dp = bincode::deserialize::<DefaultPacket>(gp.data.as_slice())
             .map_err(|e| {

@@ -3,7 +3,7 @@ use crate::network::flit::Flit;
 use std::collections::HashMap;
 use std::collections::VecDeque;
 
-use super::core_functions::packets::GeneralPacket;
+use super::core_functions::packets::Packet;
 
 #[derive(Debug, Clone)]
 pub struct FlitBuffer {
@@ -80,7 +80,7 @@ impl ReceivedFlitsBuffer {
         self.buffer.get_mut(&key).unwrap().push(flit);
     }
 
-    pub fn pop_packet(&mut self, from_id: &str, packet_id: u32) -> Option<GeneralPacket> {
+    pub fn pop_packet(&mut self, from_id: &str, packet_id: u32) -> Option<Packet> {
         let key = format!("{}-{}", from_id, packet_id);
         if !self.buffer.contains_key(&key) {
             return None;
@@ -106,7 +106,7 @@ impl ReceivedFlitsBuffer {
 
         self.buffer.get_mut(&key).unwrap().clear();
 
-        Some(GeneralPacket {
+        Some(Packet {
             data,
             source_id: tail_flit.get_source_id().unwrap(),
             dest_id: tail_flit.get_dest_id().unwrap(),

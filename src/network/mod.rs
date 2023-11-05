@@ -14,7 +14,7 @@ use crate::log::packet_is_received;
 use crate::log::{
     get_packet_log, post_new_packet_log, update_packet_log, NewPacketLogInfo, UpdatePacketLogInfo,
 };
-use crate::network::core_functions::packets::GeneralPacket;
+use crate::network::core_functions::packets::Packet;
 use crate::network::flit::Flit;
 use crate::sim::node_type::NodeType;
 use std::collections::HashMap;
@@ -175,7 +175,7 @@ impl Network {
         }
     }
 
-    fn log_handler(&self, packet: &GeneralPacket) {
+    fn log_handler(&self, packet: &Packet) {
         let packet_id = packet.source_id.to_string() + "_" + &packet.packet_id.to_string();
 
         if get_packet_log(&packet_id).is_none() {
@@ -201,7 +201,7 @@ impl Network {
         }
     }
 
-    fn get_message(&self, packet: &GeneralPacket) -> String {
+    fn get_message(&self, packet: &Packet) -> String {
         match self.core {
             CoreFunction::DefaultFunction(_) => {
                 let p = DefaultPacket::from_general(packet);
