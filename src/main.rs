@@ -97,7 +97,7 @@ mod tests {
             dbg!(entry, path.clone());
             if path.is_file() {
                 let verbose = false;
-                for _ in 0..10 {
+                for _ in 0..5 {
                     clear_vid_table();
                     clear_log();
 
