@@ -204,10 +204,8 @@ pub fn aggregate_log() -> HashMap<String, f64> {
             sum += packet_log.last_receive_cycle.unwrap() - packet_log.send_cycle;
             count += 1;
 
-            if packet_log.message == "jack" {
-                if packet_log.last_receive_cycle.unwrap() > jack_max_cycle {
-                    jack_max_cycle = packet_log.last_receive_cycle.unwrap();
-                }
+            if packet_log.message == "jack" && packet_log.last_receive_cycle.unwrap() > jack_max_cycle {
+                jack_max_cycle = packet_log.last_receive_cycle.unwrap();
             }
         } else {
             undelivered_count += 1;
