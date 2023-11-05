@@ -3,6 +3,8 @@ use crate::network::ChannelId;
 use crate::utils::div_ceil;
 use std::error;
 
+use super::core_functions::packets::GeneralPacket;
+
 #[derive(Clone, Default, Debug, PartialEq)]
 pub enum Flit {
     Header(HeaderFlit),
@@ -208,56 +210,50 @@ pub struct AckFlit {
     pub channel_id: ChannelId,
 }
 
-pub fn data_to_flits(
-    data: Vec<u8>,
-    source_id: &str,
-    dest_id: &str,
-    next_id: &str,
-    prev_id: &str,
-    packet_id: u32,
-    channel_id: ChannelId,
+pub fn packet_to_flits(
+    packet: &GeneralPacket
 ) -> Vec<Flit> {
     let mut flits = Vec::new();
-    let flits_len = div_ceil(data.len() as u32, DATA_BYTE_PER_FLIT);
+    let flits_len = div_ceil(packet.data.len() as u32, DATA_BYTE_PER_FLIT);
 
     // DATA_BYTE_PER_FLITでdataを分割する
-    for (flit_num, data_chunk) in data.chunks(DATA_BYTE_PER_FLIT as usize).enumerate() {
+    for (flit_num, data_chunk) in packet.data.chunks(DATA_BYTE_PER_FLIT as usize).enumerate() {
         if flit_num == 0 {
             flits.push(Flit::Header(HeaderFlit {
-                source_id: source_id.to_string(),
-                dest_id: dest_id.to_string(),
-                next_id: next_id.to_string(),
-                prev_id: prev_id.to_string(),
-                packet_id,
+                source_id: packet.source_id.clone(),
+                dest_id: packet.dest_id.clone(),
+                next_id: packet.next_id.clone(),
+                prev_id: packet.prev_id.clone(),
+                packet_id: packet.packet_id,
                 data: data_chunk.to_vec(),
                 flits_len,
-                channel_id,
+                channel_id: packet.channel_id,
             }));
             continue;
         } else if flit_num == flits_len as usize - 1 {
             flits.push(Flit::Tail(TailFlit {
-                source_id: source_id.to_string(),
-                dest_id: dest_id.to_string(),
-                next_id: next_id.to_string(),
-                prev_id: prev_id.to_string(),
+                source_id: packet.source_id.clone(),
+                dest_id: packet.dest_id.clone(),
+                next_id: packet.next_id.clone(),
+                prev_id: packet.prev_id.clone(),
                 flit_num: flit_num as u32 + 1,
                 resend_num: 0,
                 data: data_chunk.to_vec(),
-                packet_id,
-                channel_id,
+                packet_id: packet.packet_id,
+                channel_id: packet.channel_id,
             }));
             break;
         }
         flits.push(Flit::Data(DataFlit {
-            source_id: source_id.to_string(),
-            dest_id: dest_id.to_string(),
-            next_id: next_id.to_string(),
-            prev_id: prev_id.to_string(),
+            source_id: packet.source_id.clone(),
+            dest_id: packet.dest_id.clone(),
+            next_id: packet.next_id.clone(),
+            prev_id: packet.prev_id.clone(),
             flit_num: flit_num as u32 + 1,
             resend_num: 0,
             data: data_chunk.to_vec(),
-            packet_id,
-            channel_id,
+            packet_id: packet.packet_id,
+            channel_id: packet.channel_id,
         }));
     }
     flits
@@ -281,7 +277,15 @@ mod tests {
     use super::*;
     #[test]
     fn test_data_to_flits() {
-        let flits = data_to_flits(vec![0; 100], "source", "dest", "next", "next", 0, 0);
+        let flits = packet_to_flits(&GeneralPacket {
+            data: vec![0; 100],
+            dest_id: "dest".to_string(),
+            prev_id: "prev".to_string(),
+            next_id: "next".to_string(),
+            source_id: "source".to_string(),
+            packet_id: 0,
+            channel_id: 0,
+        });
         match DATA_BYTE_PER_FLIT {
             32 => {
                 assert_eq!(flits.len(), 5);
@@ -301,7 +305,15 @@ mod tests {
     }
     #[test]
     fn test_flits_to_data() {
-        let flits = data_to_flits(vec![0; 100], "source", "dest", "next", "next", 0, 0);
+        let flits = packet_to_flits(&GeneralPacket {
+            data: vec![0; 100],
+            dest_id: "dest".to_string(),
+            prev_id: "prev".to_string(),
+            next_id: "next".to_string(),
+            source_id: "source".to_string(),
+            packet_id: 0,
+            channel_id: 0,
+        });
 
         let data = flits_to_data(&flits);
         assert_eq!(data.len(), 100);

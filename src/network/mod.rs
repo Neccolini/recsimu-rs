@@ -6,7 +6,7 @@ pub mod vid;
 use self::core_functions::packets::DefaultPacket;
 use self::core_functions::packets::InjectionPacket;
 use self::core_functions::CoreFunction;
-use self::flit::data_to_flits;
+use self::flit::packet_to_flits;
 use self::flit_buffer::{FlitBuffer, ReceivedFlitsBuffer};
 use self::vid::*;
 use crate::hardware::switching::Switching;
@@ -78,15 +78,7 @@ impl Network {
         // 送信待ちのパケットを取りに行く
         if let Some(packet) = self.core.send_packet() {
             // packetをフリットに変換する
-            let flits = data_to_flits(
-                packet.data.clone(),
-                &packet.source_id,
-                &packet.dest_id,
-                &packet.next_id,
-                &packet.prev_id,
-                packet.packet_id,
-                packet.channel_id,
-            );
+            let flits = packet_to_flits(&packet);
             self.log_handler(&packet);
 
             // 送信待ちのパケットがあったら
