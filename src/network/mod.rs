@@ -10,6 +10,7 @@ use self::flit::data_to_flits;
 use self::flit_buffer::{FlitBuffer, ReceivedFlitsBuffer};
 use self::vid::*;
 use crate::hardware::switching::Switching;
+use crate::log::packet_is_received;
 use crate::log::{
     get_packet_log, post_new_packet_log, update_packet_log, NewPacketLogInfo, UpdatePacketLogInfo,
 };
@@ -195,7 +196,7 @@ impl Network {
             };
 
             let _ = post_new_packet_log(log);
-        } else {
+        } else if !packet_is_received(&packet_id) {
             let update_log = UpdatePacketLogInfo {
                 last_receive_cycle: Some(self.cur_cycle),
                 route_info: Some(self.id.clone()),

@@ -162,6 +162,15 @@ pub fn get_packet_log(packet_id: &str) -> Option<PacketLog> {
     log.packets_info.get(packet_id).cloned()
 }
 
+pub fn packet_is_received(packet_id: &str) -> bool {
+    let log = LOG.lock().expect("failed to lock log");
+    log.packets_info
+        .get(packet_id)
+        .expect("specified packet not found")
+        .last_receive_cycle
+        .is_some()
+}
+
 pub fn get_all_log() -> Vec<PacketLog> {
     let log = LOG.lock().expect("failed to lock log");
 
