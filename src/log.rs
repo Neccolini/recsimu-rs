@@ -190,7 +190,7 @@ pub fn aggregate_log() -> HashMap<String, f64> {
     // 必要な情報は，パケットの送信にかかった平均サイクル数
     let log = LOG.lock().expect("failed to lock log");
 
-    let mut sum = 0;
+    let mut sum = 0.0;
     let mut count = 0;
     let mut undelivered_count = 0;
     let mut flits_count = 0;
@@ -201,7 +201,8 @@ pub fn aggregate_log() -> HashMap<String, f64> {
             if packet_log.last_receive_cycle.unwrap() < packet_log.send_cycle {
                 panic!("{:?}", packet_log);
             }
-            sum += packet_log.last_receive_cycle.unwrap() - packet_log.send_cycle;
+            sum += (packet_log.last_receive_cycle.unwrap() - packet_log.send_cycle) as f64
+                / packet_log.flits_len as f64;
             count += 1;
 
             if packet_log.message == "jack"
@@ -217,7 +218,7 @@ pub fn aggregate_log() -> HashMap<String, f64> {
 
     let mut result = HashMap::new();
 
-    result.insert("average_cycle".to_string(), sum as f64 / count as f64);
+    result.insert("average_cycle".to_string(), sum / count as f64);
     result.insert("undelivered_packets".to_string(), undelivered_count as f64);
     result.insert("total_packets".to_string(), log.packets_info.len() as f64);
     result.insert("total_flits".to_string(), flits_count as f64);
