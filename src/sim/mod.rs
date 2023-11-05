@@ -109,7 +109,7 @@ mod tests {
 
     #[test]
     fn test_sim_build() {
-        let path = PathBuf::from("tests/run/1_c.json");
+        let path = PathBuf::from("tests/run/auto/1_c.json");
         let sim_builder = SimBuilder::new(&path, false);
         let sim = sim_builder.build().unwrap();
 

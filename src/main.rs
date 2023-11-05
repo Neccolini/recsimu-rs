@@ -89,7 +89,7 @@ mod tests {
 
     #[test]
     fn test_run() {
-        let testfile_dir = "tests/run/";
+        let testfile_dir = "tests/run/auto/";
         // testfile_dir以下のファイルを全てテストする
         for entry in fs::read_dir(testfile_dir).unwrap() {
             let entry = entry.unwrap();
