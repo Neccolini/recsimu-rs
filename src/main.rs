@@ -82,7 +82,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
 // test
 #[cfg(test)]
 mod tests {
-    use recsimu::network::vid::clear_vid_table;
+    use recsimu::{log::clear_log, network::vid::clear_vid_table};
 
     use super::*;
     use std::fs;
@@ -99,6 +99,8 @@ mod tests {
                 let verbose = false;
                 for _ in 0..10 {
                     clear_vid_table();
+                    clear_log();
+
                     let mut sim = SimBuilder::new(&path, verbose).build().unwrap();
                     sim.run();
 

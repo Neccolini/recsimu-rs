@@ -98,7 +98,7 @@ impl Nodes {
 
         // node全ての状態をprint
         for node in self.nodes.iter() {
-            println!("node: {}, state: {:?}", node.id, node.hardware.state.get());
+            eprintln!("node: {}, state: {:?}", node.id, node.hardware.state.get());
         }
 
         // flit_buffersをクリア

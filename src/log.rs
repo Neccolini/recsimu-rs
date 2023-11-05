@@ -168,6 +168,41 @@ pub fn get_all_log() -> Vec<PacketLog> {
     log.packets_info.values().cloned().collect()
 }
 
+pub fn clear_log() {
+    let mut log = LOG.lock().expect("failed to lock log");
+    log.packets_info.clear();
+}
+
+// ログの集計
+pub fn aggregate_log() -> HashMap<String, f64> {
+    // 必要な情報は，パケットの送信にかかった平均サイクル数
+    let log = LOG.lock().expect("failed to lock log");
+
+    let mut sum = 0;
+    let mut count = 0;
+    let mut undelivered_count = 0;
+
+    for (_, packet_log) in log.packets_info.iter() {
+        if packet_log.is_delivered {
+            if packet_log.last_receive_cycle.unwrap() < packet_log.send_cycle {
+                panic!("{:?}", packet_log);
+            }
+            sum += packet_log.last_receive_cycle.unwrap() - packet_log.send_cycle;
+            count += 1;
+        } else {
+            undelivered_count += 1;
+        }
+    }
+
+    let mut result = HashMap::new();
+
+    result.insert("average_cycle".to_string(), sum as f64 / count as f64);
+    result.insert("undelivered_count".to_string(), undelivered_count as f64);
+    result.insert("total_count".to_string(), log.packets_info.len() as f64);
+
+    result
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

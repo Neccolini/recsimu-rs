@@ -4,7 +4,7 @@ pub mod nodes;
 
 use crate::file::InputFile;
 use crate::hardware::switching::Switching;
-use crate::log::{get_all_log, Log};
+use crate::log::{aggregate_log, get_all_log, Log};
 use crate::network::core_functions::packets::InjectionPacket;
 use std::collections::HashMap;
 use std::{error, path::Path, path::PathBuf};
@@ -95,10 +95,11 @@ impl Sim {
             self.cur_cycles += 1;
         }
 
-        // ログを出力する
         get_all_log().iter().for_each(|log| {
-            println!("{:?}", log);
-        })
+            eprintln!("{:?}", log);
+        });
+
+        println!("{:?}", aggregate_log());
     }
 }
 
