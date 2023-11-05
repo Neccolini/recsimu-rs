@@ -135,14 +135,14 @@ pub struct UpdatePacketLogInfo {
 }
 
 pub fn update_packet_log(
-    packet_id: String,
-    update_packet_log: UpdatePacketLogInfo,
+    packet_id: &str,
+    update_packet_log: &UpdatePacketLogInfo,
 ) -> Result<PacketLog, Box<dyn error::Error>> {
     let mut log = LOG.lock().expect("failed to lock log");
 
     let packet_log = log
         .packets_info
-        .get_mut(&packet_id)
+        .get_mut(packet_id)
         .expect("specified packet not found");
 
     if let Some(last_receive_cycle) = &update_packet_log.last_receive_cycle {
@@ -204,7 +204,9 @@ pub fn aggregate_log() -> HashMap<String, f64> {
             sum += packet_log.last_receive_cycle.unwrap() - packet_log.send_cycle;
             count += 1;
 
-            if packet_log.message == "jack" && packet_log.last_receive_cycle.unwrap() > jack_max_cycle {
+            if packet_log.message == "jack"
+                && packet_log.last_receive_cycle.unwrap() > jack_max_cycle
+            {
                 jack_max_cycle = packet_log.last_receive_cycle.unwrap();
             }
         } else {
@@ -272,8 +274,7 @@ mod tests {
             is_delivered: Some(true),
             flit_log: None,
         };
-        let packet_log =
-            update_packet_log(packet_log.packet_id.clone(), update_packet_log_info).unwrap();
+        let packet_log = update_packet_log(&packet_log.packet_id, &update_packet_log_info).unwrap();
         assert_eq!(packet_log.packet_id, "packet_id");
         assert_eq!(packet_log.from_id, "from_id");
         assert_eq!(packet_log.dest_id, "dest_id");

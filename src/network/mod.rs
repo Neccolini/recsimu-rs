@@ -205,7 +205,7 @@ impl Network {
                 flit_log: None,
             };
 
-            let _ = update_packet_log(packet_id, update_log);
+            let _ = update_packet_log(&packet_id, &update_log);
         }
     }
 
