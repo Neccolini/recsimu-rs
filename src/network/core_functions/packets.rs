@@ -1,3 +1,5 @@
+use crate::hardware::constants::DATA_BYTE_PER_FLIT;
+use crate::utils::div_ceil;
 use serde::{Deserialize, Serialize};
 
 use crate::network::vid::get_vid;
@@ -10,6 +12,12 @@ pub struct GeneralPacket {
     pub source_id: String,
     pub packet_id: u32,
     pub channel_id: u32,
+}
+
+impl GeneralPacket {
+    pub fn get_flits_len(&self) -> u32 {
+        div_ceil(self.data.len() as u32, DATA_BYTE_PER_FLIT)
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

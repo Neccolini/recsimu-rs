@@ -59,6 +59,7 @@ pub struct PacketLog {
     pub dest_id: String,
     pub send_cycle: u32,
     pub last_receive_cycle: Option<u32>,
+    pub flits_len: u32,
     pub route_info: Vec<String>,
     pub flit_logs: Vec<FlitLog>,
     pub is_delivered: bool,
@@ -78,6 +79,7 @@ pub struct NewPacketLogInfo {
     pub from_id: String,
     pub dest_id: String,
     pub send_cycle: u32,
+    pub flits_len: u32,
     pub message: String,
 }
 
@@ -92,6 +94,7 @@ pub fn post_new_packet_log(
         dest_id: packet_info.dest_id,
         send_cycle: packet_info.send_cycle,
         last_receive_cycle: None,
+        flits_len: packet_info.flits_len,
         route_info: vec![packet_info.from_id],
         flit_logs: Vec::new(),
         is_delivered: false,
@@ -190,6 +193,8 @@ pub fn aggregate_log() -> HashMap<String, f64> {
     let mut sum = 0;
     let mut count = 0;
     let mut undelivered_count = 0;
+    let mut flits_count = 0;
+    let mut jack_max_cycle = 0;
 
     for (_, packet_log) in log.packets_info.iter() {
         if packet_log.is_delivered {
@@ -198,16 +203,29 @@ pub fn aggregate_log() -> HashMap<String, f64> {
             }
             sum += packet_log.last_receive_cycle.unwrap() - packet_log.send_cycle;
             count += 1;
+
+            if packet_log.message == "jack" {
+                if packet_log.last_receive_cycle.unwrap() > jack_max_cycle {
+                    jack_max_cycle = packet_log.last_receive_cycle.unwrap();
+                }
+            }
         } else {
             undelivered_count += 1;
         }
+        flits_count += packet_log.flits_len;
     }
 
     let mut result = HashMap::new();
 
     result.insert("average_cycle".to_string(), sum as f64 / count as f64);
-    result.insert("undelivered_count".to_string(), undelivered_count as f64);
-    result.insert("total_count".to_string(), log.packets_info.len() as f64);
+    result.insert("undelivered_packets".to_string(), undelivered_count as f64);
+    result.insert("total_packets".to_string(), log.packets_info.len() as f64);
+    result.insert("total_flits".to_string(), flits_count as f64);
+    result.insert("jack_max_cycle".to_string(), jack_max_cycle as f64);
+    result.insert(
+        "average_flits".to_string(),
+        flits_count as f64 / log.packets_info.len() as f64,
+    );
 
     result
 }
@@ -223,6 +241,7 @@ mod tests {
             from_id: "from_id".to_string(),
             dest_id: "dest_id".to_string(),
             send_cycle: 0,
+            flits_len: 2,
             message: "test".to_string(),
         };
         let packet_log = post_new_packet_log(packet_info).unwrap();
@@ -230,6 +249,7 @@ mod tests {
         assert_eq!(packet_log.from_id, "from_id");
         assert_eq!(packet_log.dest_id, "dest_id");
         assert_eq!(packet_log.send_cycle, 0);
+        assert_eq!(packet_log.flits_len, 2);
         assert_eq!(packet_log.last_receive_cycle, None);
         assert_eq!(packet_log.route_info, vec!["from_id"]);
         assert_eq!(packet_log.flit_logs, Vec::<FlitLog>::new());
@@ -243,6 +263,7 @@ mod tests {
             from_id: "from_id".to_string(),
             dest_id: "dest_id".to_string(),
             send_cycle: 0,
+            flits_len: 3,
             message: "test".to_string(),
         };
         let packet_log = post_new_packet_log(packet_info).unwrap();
@@ -259,6 +280,7 @@ mod tests {
         assert_eq!(packet_log.from_id, "from_id");
         assert_eq!(packet_log.dest_id, "dest_id");
         assert_eq!(packet_log.send_cycle, 0);
+        assert_eq!(packet_log.flits_len, 3);
         assert_eq!(packet_log.last_receive_cycle, Some(1));
         assert_eq!(packet_log.route_info, vec!["from_id", "route_info"]);
         assert_eq!(packet_log.flit_logs, Vec::<FlitLog>::new());
@@ -272,6 +294,7 @@ mod tests {
             from_id: "from_id".to_string(),
             dest_id: "dest_id".to_string(),
             send_cycle: 0,
+            flits_len: 1,
             message: "test".to_string(),
         };
         let packet_log = post_new_packet_log(packet_info).unwrap();
@@ -281,6 +304,7 @@ mod tests {
         assert_eq!(get_packet_log.from_id, "from_id");
         assert_eq!(get_packet_log.dest_id, "dest_id");
         assert_eq!(get_packet_log.send_cycle, 0);
+        assert_eq!(get_packet_log.flits_len, 1);
         assert_eq!(get_packet_log.last_receive_cycle, None);
         assert_eq!(get_packet_log.route_info, vec!["from_id"]);
         assert_eq!(get_packet_log.flit_logs, Vec::<FlitLog>::new());

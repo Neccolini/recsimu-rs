@@ -192,6 +192,7 @@ impl Network {
                 from_id: packet.source_id.clone(),
                 dest_id: packet.dest_id.clone(),
                 send_cycle: self.cur_cycle,
+                flits_len: packet.get_flits_len(),
                 message: self.get_message(packet),
             };
 
