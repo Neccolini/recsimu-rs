@@ -1,6 +1,7 @@
 use clap::{Arg, ArgAction, Command};
 use recsimu::gen::config::Config;
 use recsimu::sim::SimBuilder;
+use recsimu::utils;
 use std::error;
 use std::path::PathBuf;
 fn main() -> Result<(), Box<dyn error::Error>> {
@@ -69,8 +70,9 @@ fn main() -> Result<(), Box<dyn error::Error>> {
         }
         Some(("run", run_matches)) => {
             let input = run_matches.get_one::<String>("input_file_path").unwrap();
-            let verbose = run_matches.contains_id("verbose");
-            let mut sim = SimBuilder::new(&PathBuf::from(input), verbose).build()?;
+            *utils::DEBUG_ENABLED.lock().unwrap() = run_matches.contains_id("verbose");
+
+            let mut sim = SimBuilder::new(&PathBuf::from(input)).build()?;
 
             sim.run();
         }
@@ -96,12 +98,11 @@ mod tests {
             let path = entry.path();
             dbg!(entry, path.clone());
             if path.is_file() {
-                let verbose = false;
                 for _ in 0..5 {
                     clear_vid_table();
                     clear_log();
 
-                    let mut sim = SimBuilder::new(&path, verbose).build().unwrap();
+                    let mut sim = SimBuilder::new(&path).build().unwrap();
                     sim.run();
 
                     for node in sim.nodes.nodes.iter() {

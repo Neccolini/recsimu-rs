@@ -1,6 +1,19 @@
+use once_cell::sync::Lazy;
 use serde::Deserialize;
 use std::error;
 use std::path::PathBuf;
+use std::sync::Mutex;
+
+pub static DEBUG_ENABLED: Lazy<Mutex<bool>> = Lazy::new(|| Mutex::new(false));
+
+#[macro_export]
+macro_rules! debug {
+    ($($arg:tt)*) => {
+        if *crate::utils::DEBUG_ENABLED.lock().unwrap() {
+            println!($($arg)*);
+        }
+    }
+}
 
 // pathで指定されたjsonファイルを読み込む
 pub fn read_json<T>(path: PathBuf) -> Result<T, Box<dyn error::Error>>

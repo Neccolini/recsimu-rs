@@ -17,14 +17,12 @@ use crate::network::vid::add_to_vid_table;
 
 pub struct SimBuilder {
     pub path: PathBuf,
-    pub verbose: bool,
 }
 
 impl SimBuilder {
-    pub fn new(path: &Path, verbose: bool) -> Self {
+    pub fn new(path: &Path) -> Self {
         Self {
             path: path.to_path_buf(),
-            verbose,
         }
     }
     pub fn build(&self) -> Result<Sim, Box<dyn error::Error>> {
@@ -67,7 +65,6 @@ impl SimBuilder {
         // print_vid_table();
         Ok(Sim {
             node_num: input.node_num,
-            debug: self.verbose,
             nodes: Nodes::new(&nodes, &input.neighbors),
             total_cycles: input.total_cycles,
             vc_num: input.channel_num,
@@ -83,7 +80,6 @@ pub struct Sim {
     pub cur_cycles: u32,
     pub vc_num: u32,
     pub nodes: Nodes,
-    pub debug: bool,
     pub log: Log,
 }
 
@@ -110,14 +106,13 @@ mod tests {
     #[test]
     fn test_sim_build() {
         let path = PathBuf::from("tests/run/auto/1_c.json");
-        let sim_builder = SimBuilder::new(&path, false);
+        let sim_builder = SimBuilder::new(&path);
         let sim = sim_builder.build().unwrap();
 
         assert_eq!(sim.node_num, 2);
         assert_eq!(sim.total_cycles, 50);
         assert_eq!(sim.vc_num, 1);
         assert_eq!(sim.cur_cycles, 0);
-        assert_eq!(sim.debug, false);
         assert_eq!(sim.nodes.nodes.len(), 2);
         assert_eq!(sim.nodes.nodes[0].id, "node1");
         assert_eq!(sim.nodes.nodes[0].node_type, NodeType::Coordinator);
