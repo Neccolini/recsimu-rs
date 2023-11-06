@@ -96,7 +96,8 @@ impl Blocking {
     fn is_block_mode(&self) -> bool {
         match self.switching {
             Switching::CutThrough => false,
-            Switching::StoreAndForward => true,
+            Switching::StoreAndForward => false,
+            Switching::Blocking => true,
         }
     }
 }
@@ -114,7 +115,7 @@ mod tests {
 
     #[test]
     fn test_check_received_flit() {
-        let mut blocking = Blocking::new(&Switching::StoreAndForward);
+        let mut blocking = Blocking::new(&Switching::Blocking);
 
         let header_flit = Flit::Header(HeaderFlit {
             source_id: "0".to_string(),

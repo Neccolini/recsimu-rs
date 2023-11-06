@@ -4,6 +4,7 @@ pub enum Switching {
     CutThrough,
     #[default]
     StoreAndForward,
+    Blocking,
 }
 
 impl FromStr for Switching {
