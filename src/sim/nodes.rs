@@ -1,5 +1,6 @@
 use crate::hardware::state::State;
 use crate::network::flit::Flit;
+use crate::recsimu_dbg;
 use crate::sim::node::{Node, NodeId};
 use std::collections::HashMap;
 
@@ -91,7 +92,7 @@ impl Nodes {
                     });
                 }
             } else {
-                // eprintln!("collision occured at {}", node.id);
+                recsimu_dbg!("collision occured at {}", node.id);
             }
         }
 

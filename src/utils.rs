@@ -7,7 +7,7 @@ use std::sync::Mutex;
 pub static DEBUG_ENABLED: Lazy<Mutex<bool>> = Lazy::new(|| Mutex::new(false));
 
 #[macro_export]
-macro_rules! debug {
+macro_rules! recsimu_dbg {
     ($($arg:tt)*) => {
         if *crate::utils::DEBUG_ENABLED.lock().unwrap() {
             println!($($arg)*);

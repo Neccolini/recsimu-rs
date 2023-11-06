@@ -3,6 +3,7 @@ use crate::network::core_functions::packets::DefaultPacket;
 use crate::network::flit::Flit;
 use crate::network::vid::get_pid;
 use crate::network::vid::get_vid;
+use crate::recsimu_dbg;
 use crate::sim::node_type::NodeType;
 use rand::Rng;
 use std::collections::{HashMap, VecDeque};
@@ -384,7 +385,7 @@ impl DefaultFunction {
             (id, "jack") if id == self.id => {
                 // ネットワーク参加完了
                 self.network_joined = true;
-                // dbg!("network joined");
+                recsimu_dbg!("network joined");
                 return vec![];
             }
 
