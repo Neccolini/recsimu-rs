@@ -80,7 +80,7 @@ pub fn clear_vid_table() {
 
 pub fn get_vid(pid: &str) -> Option<u32> {
     let table = VID_TABLE.lock().expect("failed to lock VID_TABLE");
-    eprintln!("{:?}", table);
+    // eprintln!("{:?}", table);
     table.p_to_v.get(pid).cloned()
 }
 

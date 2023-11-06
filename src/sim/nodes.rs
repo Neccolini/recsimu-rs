@@ -20,7 +20,6 @@ impl Nodes {
     }
 
     pub fn run_cycle(&mut self, cur_cycle: u32) {
-        dbg!(cur_cycle);
         // 各ノードの状態を更新する
         self.update_nodes(cur_cycle);
 
@@ -92,13 +91,8 @@ impl Nodes {
                     });
                 }
             } else {
-                eprintln!("collision occured at {}", node.id);
+                // eprintln!("collision occured at {}", node.id);
             }
-        }
-
-        // node全ての状態をprint
-        for node in self.nodes.iter() {
-            eprintln!("node: {}, state: {:?}", node.id, node.hardware.state.get());
         }
 
         // flit_buffersをクリア

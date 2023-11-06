@@ -384,7 +384,7 @@ impl DefaultFunction {
             (id, "jack") if id == self.id => {
                 // ネットワーク参加完了
                 self.network_joined = true;
-                dbg!("network joined");
+                // dbg!("network joined");
                 return vec![];
             }
 

@@ -97,7 +97,6 @@ impl Node {
 
         if let Some(flit) = self.hardware.receive_flit(flit)? {
             self.network.receive_flit(&flit, 0);
-            dbg!("flit received");
         }
         Ok(())
     }

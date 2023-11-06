@@ -38,6 +38,8 @@ impl Hardware {
 // nodeが使用するAPI
 impl Hardware {
     pub fn send_flit(&mut self, flit: &Flit) -> Result<Flit, Box<dyn std::error::Error>> {
+        assert!(self.retransmission_buffer.is_empty());
+
         self.retransmission_buffer = flit.clone();
         Ok(flit.clone())
     }
@@ -202,7 +204,7 @@ impl Hardware {
                 && ack_flit.flit_num == flit_num
             {
                 // ackを受信したのでretransmission_bufferをクリアする
-                self.retransmission_buffer = Flit::default();
+                self.retransmission_buffer.clear();
                 self.set_state(&State::Idle);
 
                 Ok(flit.clone())

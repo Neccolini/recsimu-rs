@@ -4,7 +4,7 @@ pub mod nodes;
 
 use crate::file::InputFile;
 use crate::hardware::switching::Switching;
-use crate::log::{aggregate_log, get_all_log, Log};
+use crate::log::{aggregate_log, Log};
 use crate::network::core_functions::packets::InjectionPacket;
 use std::collections::HashMap;
 use std::{error, path::Path, path::PathBuf};
@@ -13,7 +13,7 @@ use self::node::Node;
 use self::node_type::NodeType;
 use self::nodes::Nodes;
 
-use crate::network::vid::{add_to_vid_table, print_vid_table};
+use crate::network::vid::add_to_vid_table;
 
 pub struct SimBuilder {
     pub path: PathBuf,
@@ -64,7 +64,7 @@ impl SimBuilder {
             .collect();
 
         add_to_vid_table(u32::MAX, "broadcast");
-        print_vid_table();
+        // print_vid_table();
         Ok(Sim {
             node_num: input.node_num,
             debug: self.verbose,
@@ -95,9 +95,9 @@ impl Sim {
             self.cur_cycles += 1;
         }
 
-        get_all_log().iter().for_each(|log| {
-            eprintln!("{:?}", log);
-        });
+        // get_all_log().iter().for_each(|log| {
+        //     eprintln!("{:?}", log);
+        // });
 
         println!("{:?}", aggregate_log());
     }
