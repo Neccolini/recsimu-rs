@@ -115,17 +115,14 @@ impl Network {
             self.received_flits_buffer.push_flit(flit);
 
             if flit.is_tail() || (flit.is_header() && flit.get_flits_len().unwrap_or(0) == 1) {
-                let packet = self
-                    .received_flits_buffer
-                    .pop_packet(
-                        &flit.get_source_id().unwrap(),
-                        flit.get_packet_id().unwrap(),
-                    )
-                    .unwrap();
+                if let Some(packet) = self.received_flits_buffer.pop_packet(
+                    &flit.get_source_id().unwrap(),
+                    flit.get_packet_id().unwrap(),
+                ) {
+                    self.core.receive_packet(&packet);
 
-                self.core.receive_packet(&packet);
-
-                self.log_handler(&packet);
+                    self.log_handler(&packet);
+                }
             }
         } else if flit.get_next_id().unwrap() == self.id {
             // receiving_flit_bufferのchannel_id番目のFlitBufferにpushする

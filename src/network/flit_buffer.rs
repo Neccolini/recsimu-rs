@@ -102,6 +102,11 @@ impl ReceivedFlitsBuffer {
         let tail_flit = flits.last().unwrap();
         assert!(tail_flit.is_tail() || (tail_flit.is_header() && flits.len() == 1));
 
+        // issue #48
+        if flits.first().is_none() || !flits.first().unwrap().is_header() {
+            return None;
+        }
+
         let data = flits_to_data(&flits);
 
         self.buffer.get_mut(&key).unwrap().clear();
