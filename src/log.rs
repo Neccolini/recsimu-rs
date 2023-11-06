@@ -224,7 +224,7 @@ pub fn aggregate_log() -> HashMap<String, f64> {
     result.insert("total_flits".to_string(), flits_count as f64);
     result.insert("jack_max_cycle".to_string(), jack_max_cycle as f64);
     result.insert(
-        "average_flits".to_string(),
+        "average_flits_len".to_string(),
         flits_count as f64 / log.packets_info.len() as f64,
     );
 
