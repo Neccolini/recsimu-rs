@@ -9,9 +9,9 @@ use self::flit::packet_to_flits;
 use self::flit_buffer::{FlitBuffer, ReceivedFlitsBuffer};
 use self::vid::*;
 use crate::hardware::switching::Switching;
-use crate::log::packet_is_received;
+
 use crate::log::{
-    get_packet_log, post_new_packet_log, update_packet_log, NewPacketLogInfo, UpdatePacketLogInfo,
+    post_new_packet_log, update_packet_log, NewPacketLogInfo, UpdatePacketLogInfo,
 };
 use crate::network::core_functions::packets::Packet;
 use crate::network::flit::Flit;
@@ -184,7 +184,7 @@ impl Network {
     fn log_handler(&self, flit: Option<&Flit>, packet: Option<&Packet>) {
         // 雑なassertion
         assert!(flit.is_some() || packet.is_some());
-        assert!(!flit.is_some() || !packet.is_some());
+        assert!(flit.is_none() || packet.is_none());
 
         // 更新
         if let Some(flit) = flit {
