@@ -57,7 +57,7 @@ pub struct PacketLog {
     pub packet_id: String,
     pub from_id: String,
     pub dest_id: String,
-    pub send_cycle: u32,
+    pub send_cycle: Option<u32>,
     pub last_receive_cycle: Option<u32>,
     pub flits_len: u32,
     pub route_info: Vec<String>,
@@ -78,27 +78,26 @@ pub struct NewPacketLogInfo {
     pub packet_id: String,
     pub from_id: String,
     pub dest_id: String,
-    pub send_cycle: u32,
     pub flits_len: u32,
     pub message: String,
 }
 
 pub fn post_new_packet_log(
-    packet_info: NewPacketLogInfo,
+    packet_info: &NewPacketLogInfo,
 ) -> Result<PacketLog, Box<dyn error::Error>> {
     let id = packet_info.packet_id.clone();
 
     let packet_log = PacketLog {
-        packet_id: packet_info.packet_id,
+        packet_id: packet_info.packet_id.clone(),
         from_id: packet_info.from_id.clone(),
-        dest_id: packet_info.dest_id,
-        send_cycle: packet_info.send_cycle,
+        dest_id: packet_info.dest_id.clone(),
+        send_cycle: None,
         last_receive_cycle: None,
         flits_len: packet_info.flits_len,
-        route_info: vec![packet_info.from_id],
+        route_info: vec![packet_info.from_id.clone()],
         flit_logs: Vec::new(),
         is_delivered: false,
-        message: packet_info.message,
+        message: packet_info.message.clone(),
     };
 
     LOG.lock()
@@ -128,6 +127,7 @@ impl FlitLogInfo {
 }
 
 pub struct UpdatePacketLogInfo {
+    pub send_cycle: Option<u32>,
     pub last_receive_cycle: Option<u32>,
     pub route_info: Option<String>,
     pub is_delivered: Option<bool>,
@@ -145,6 +145,10 @@ pub fn update_packet_log(
         .get_mut(packet_id)
         .expect("specified packet not found");
 
+    if let Some(send_cycle) = &update_packet_log.send_cycle {
+        packet_log.send_cycle = Some(*send_cycle);
+    }
+
     if let Some(last_receive_cycle) = &update_packet_log.last_receive_cycle {
         packet_log.last_receive_cycle = Some(*last_receive_cycle);
     }
@@ -155,6 +159,10 @@ pub fn update_packet_log(
 
     if let Some(is_delivered) = &update_packet_log.is_delivered {
         packet_log.is_delivered = *is_delivered;
+    }
+
+    if let Some(flit_log) = &update_packet_log.flit_log {
+        packet_log.flit_logs.push(flit_log.to_flit_log());
     }
 
     Ok(packet_log.clone())
@@ -198,10 +206,10 @@ pub fn aggregate_log() -> HashMap<String, f64> {
 
     for (_, packet_log) in log.packets_info.iter() {
         if packet_log.is_delivered {
-            if packet_log.last_receive_cycle.unwrap() < packet_log.send_cycle {
+            if packet_log.last_receive_cycle.unwrap() < packet_log.send_cycle.unwrap() {
                 panic!("{:?}", packet_log);
             }
-            sum += (packet_log.last_receive_cycle.unwrap() - packet_log.send_cycle) as f64
+            sum += (packet_log.last_receive_cycle.unwrap() - packet_log.send_cycle.unwrap()) as f64
                 / packet_log.flits_len as f64;
             count += 1;
 
@@ -241,15 +249,13 @@ mod tests {
             packet_id: "packet_id".to_string(),
             from_id: "from_id".to_string(),
             dest_id: "dest_id".to_string(),
-            send_cycle: 0,
             flits_len: 2,
             message: "test".to_string(),
         };
-        let packet_log = post_new_packet_log(packet_info).unwrap();
+        let packet_log = post_new_packet_log(&packet_info).unwrap();
         assert_eq!(packet_log.packet_id, "packet_id");
         assert_eq!(packet_log.from_id, "from_id");
         assert_eq!(packet_log.dest_id, "dest_id");
-        assert_eq!(packet_log.send_cycle, 0);
         assert_eq!(packet_log.flits_len, 2);
         assert_eq!(packet_log.last_receive_cycle, None);
         assert_eq!(packet_log.route_info, vec!["from_id"]);
@@ -263,13 +269,13 @@ mod tests {
             packet_id: "packet_id".to_string(),
             from_id: "from_id".to_string(),
             dest_id: "dest_id".to_string(),
-            send_cycle: 0,
             flits_len: 3,
             message: "test".to_string(),
         };
-        let packet_log = post_new_packet_log(packet_info).unwrap();
+        let packet_log = post_new_packet_log(&packet_info).unwrap();
 
         let update_packet_log_info = UpdatePacketLogInfo {
+            send_cycle: None,
             last_receive_cycle: Some(1),
             route_info: Some("route_info".to_string()),
             is_delivered: Some(true),
@@ -279,7 +285,6 @@ mod tests {
         assert_eq!(packet_log.packet_id, "packet_id");
         assert_eq!(packet_log.from_id, "from_id");
         assert_eq!(packet_log.dest_id, "dest_id");
-        assert_eq!(packet_log.send_cycle, 0);
         assert_eq!(packet_log.flits_len, 3);
         assert_eq!(packet_log.last_receive_cycle, Some(1));
         assert_eq!(packet_log.route_info, vec!["from_id", "route_info"]);
@@ -293,17 +298,15 @@ mod tests {
             packet_id: "packet_id".to_string(),
             from_id: "from_id".to_string(),
             dest_id: "dest_id".to_string(),
-            send_cycle: 0,
             flits_len: 1,
             message: "test".to_string(),
         };
-        let packet_log = post_new_packet_log(packet_info).unwrap();
+        let packet_log = post_new_packet_log(&packet_info).unwrap();
 
         let get_packet_log = get_packet_log(&packet_log.packet_id).unwrap();
         assert_eq!(get_packet_log.packet_id, "packet_id");
         assert_eq!(get_packet_log.from_id, "from_id");
         assert_eq!(get_packet_log.dest_id, "dest_id");
-        assert_eq!(get_packet_log.send_cycle, 0);
         assert_eq!(get_packet_log.flits_len, 1);
         assert_eq!(get_packet_log.last_receive_cycle, None);
         assert_eq!(get_packet_log.route_info, vec!["from_id"]);

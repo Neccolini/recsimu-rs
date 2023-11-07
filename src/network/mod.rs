@@ -3,7 +3,6 @@ pub mod flit;
 pub mod flit_buffer;
 pub mod vid;
 
-use self::core_functions::packets::DefaultPacket;
 use self::core_functions::packets::InjectionPacket;
 use self::core_functions::CoreFunction;
 use self::flit::packet_to_flits;
@@ -67,7 +66,14 @@ impl Network {
 
     pub fn send_flit(&mut self, channel_id: ChannelId) -> Option<Flit> {
         // sending_flit_bufferのchannel_id番目のFlitBufferからpopする
-        self.sending_flit_buffer.get_mut(&channel_id).unwrap().pop()
+        if let Some(flit) = self.sending_flit_buffer.get_mut(&channel_id).unwrap().pop() {
+            // log
+            self.log_handler(Some(&flit), None);
+
+            return Some(flit);
+        }
+
+        None
     }
 
     pub fn update(&mut self, cur_cycle: u32) {
@@ -79,7 +85,9 @@ impl Network {
         if let Some(packet) = self.core.send_packet() {
             // packetをフリットに変換する
             let flits = packet_to_flits(&packet);
-            self.log_handler(&packet);
+
+            // log
+            self.log_handler(None, Some(&packet));
 
             // 送信待ちのパケットがあったら
             // sending_flit_bufferのchannel_id番目のFlitBufferにpushする
@@ -114,14 +122,15 @@ impl Network {
             // received_flits_bufferにpushする
             self.received_flits_buffer.push_flit(flit);
 
-            if flit.is_tail() || (flit.is_header() && flit.get_flits_len().unwrap_or(0) == 1) {
+            if flit.is_last() {
                 if let Some(packet) = self.received_flits_buffer.pop_packet(
                     &flit.get_source_id().unwrap(),
                     flit.get_packet_id().unwrap(),
                 ) {
                     self.core.receive_packet(&packet);
 
-                    self.log_handler(&packet);
+                    // log
+                    self.log_handler(Some(flit), None);
                 }
             }
         } else if flit.get_next_id().unwrap() == self.id {
@@ -131,7 +140,7 @@ impl Network {
                 .unwrap()
                 .push(flit);
 
-            if flit.is_tail() || (flit.is_header() && flit.get_flits_len().unwrap_or(0) == 1) {
+            if flit.is_last() {
                 while !self
                     .receiving_flit_buffer
                     .get(&channel_id)
@@ -172,38 +181,51 @@ impl Network {
         }
     }
 
-    fn log_handler(&self, packet: &Packet) {
-        let packet_id = packet.source_id.to_string() + "_" + &packet.packet_id.to_string();
+    fn log_handler(&self, flit: Option<&Flit>, packet: Option<&Packet>) {
+        // 雑なassertion
+        assert!(flit.is_some() || packet.is_some());
+        assert!(!flit.is_some() || !packet.is_some());
 
-        if get_packet_log(&packet_id).is_none() {
-            let log = NewPacketLogInfo {
-                packet_id,
-                from_id: packet.source_id.clone(),
-                dest_id: packet.dest_id.clone(),
-                send_cycle: self.cur_cycle,
-                flits_len: packet.get_flits_len(),
-                message: self.get_message(packet),
-            };
+        // 更新
+        if let Some(flit) = flit {
+            let packet_id =
+                flit.get_source_id().unwrap() + "_" + &flit.get_packet_id().unwrap().to_string();
 
-            let _ = post_new_packet_log(log);
-        } else if !packet_is_received(&packet_id) {
+            let send_init = flit.get_source_id().unwrap() == self.id && flit.is_header();
+            let is_delivered = flit.get_dest_id().unwrap() == self.id && flit.is_last();
+
             let update_log = UpdatePacketLogInfo {
-                last_receive_cycle: Some(self.cur_cycle),
+                send_cycle: if send_init {
+                    Some(self.cur_cycle)
+                } else {
+                    None
+                },
+                last_receive_cycle: if is_delivered {
+                    Some(self.cur_cycle)
+                } else {
+                    None
+                },
                 route_info: Some(self.id.clone()),
-                is_delivered: Some(true),
+                is_delivered: Some(is_delivered),
                 flit_log: None,
             };
 
             let _ = update_packet_log(&packet_id, &update_log);
         }
-    }
 
-    fn get_message(&self, packet: &Packet) -> String {
-        match self.core {
-            CoreFunction::DefaultFunction(_) => {
-                let p = DefaultPacket::from_general(packet);
-                p.message
-            }
+        // 最初のパケット登録
+        if let Some(packet) = packet {
+            let packet_id = packet.source_id.clone() + "_" + &packet.packet_id.to_string();
+
+            let log = NewPacketLogInfo {
+                packet_id,
+                from_id: packet.source_id.clone(),
+                dest_id: packet.dest_id.clone(),
+                flits_len: packet.get_flits_len(),
+                message: self.core.get_message(packet),
+            };
+
+            let _ = post_new_packet_log(&log);
         }
     }
 }

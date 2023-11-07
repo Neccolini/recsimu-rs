@@ -6,7 +6,7 @@ use crate::{
     sim::node_type::NodeType,
 };
 
-use self::packets::{InjectionPacket, Packet};
+use self::packets::{DefaultPacket, InjectionPacket, Packet};
 
 #[derive(Debug, Clone)]
 pub enum CoreFunction {
@@ -60,6 +60,15 @@ impl CoreFunction {
     pub(crate) fn is_joined(&self) -> bool {
         match self {
             CoreFunction::DefaultFunction(rf) => rf.is_joined(),
+        }
+    }
+
+    pub(crate) fn get_message(&self, packet: &Packet) -> String {
+        match self {
+            CoreFunction::DefaultFunction(_) => {
+                let p = DefaultPacket::from_general(packet);
+                p.message
+            }
         }
     }
 }

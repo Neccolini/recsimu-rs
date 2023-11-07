@@ -161,6 +161,10 @@ impl Flit {
             Flit::Empty => None,
         }
     }
+
+    pub fn is_last(&self) -> bool {
+        self.is_tail() || (self.is_header() && self.get_flits_len().unwrap_or(0) == 1)
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
