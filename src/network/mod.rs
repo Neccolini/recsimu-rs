@@ -10,9 +10,7 @@ use self::flit_buffer::{FlitBuffer, ReceivedFlitsBuffer};
 use self::vid::*;
 use crate::hardware::switching::Switching;
 
-use crate::log::{
-    post_new_packet_log, update_packet_log, NewPacketLogInfo, UpdatePacketLogInfo,
-};
+use crate::log::{post_new_packet_log, update_packet_log, NewPacketLogInfo, UpdatePacketLogInfo};
 use crate::network::core_functions::packets::Packet;
 use crate::network::flit::Flit;
 use crate::sim::node_type::NodeType;
