@@ -70,8 +70,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
         }
         Some(("run", run_matches)) => {
             let input = run_matches.get_one::<String>("input_file_path").unwrap();
-            *utils::DEBUG_ENABLED.lock().unwrap() = run_matches.contains_id("verbose");
-
+            *utils::DEBUG_ENABLED.lock().unwrap() = run_matches.get_flag("verbose");
             let mut sim = SimBuilder::new(&PathBuf::from(input)).build()?;
 
             sim.run();
