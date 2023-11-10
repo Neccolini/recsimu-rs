@@ -42,12 +42,14 @@ cfg_if::cfg_if!(
 #[derive(Debug, Clone, Default)]
 pub struct Log {
     pub packets_info: HashMap<String, PacketLog>,
+    pub collision_info: Vec<CollisionInfo>,
 }
 
 impl Log {
     pub fn new() -> Self {
         Self {
             packets_info: HashMap::new(),
+            collision_info: Vec::new(),
         }
     }
 }
@@ -193,6 +195,31 @@ pub fn clear_log() {
     log.packets_info.clear();
 }
 
+#[derive(Debug, Clone)]
+pub struct CollisionInfo {
+    pub cycle: u32,
+    pub from_ids: Vec<String>,
+    pub dest_id: String,
+}
+
+pub struct NewCollisionInfo {
+    pub cycle: u32,
+    pub from_ids: Vec<String>,
+    pub dest_id: String,
+}
+
+pub fn post_collision_info(info: &NewCollisionInfo) {
+    let mut log = LOG.lock().expect("failed to lock log");
+
+    let collision_info = CollisionInfo {
+        cycle: info.cycle,
+        from_ids: info.from_ids.clone(),
+        dest_id: info.dest_id.clone(),
+    };
+
+    log.collision_info.push(collision_info);
+}
+
 // ログの集計
 pub fn aggregate_log() -> HashMap<String, f64> {
     // 必要な情報は，パケットの送信にかかった平均サイクル数
@@ -234,6 +261,10 @@ pub fn aggregate_log() -> HashMap<String, f64> {
     result.insert(
         "average_flits_len".to_string(),
         flits_count as f64 / log.packets_info.len() as f64,
+    );
+    result.insert(
+        "collision_count".to_string(),
+        log.collision_info.len() as f64,
     );
 
     result
