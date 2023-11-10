@@ -162,7 +162,7 @@ impl DefaultFunction {
 // private functions
 #[allow(unused_variables)]
 impl DefaultFunction {
-    fn next_node_id(&self, dest_id: u32, channel_id: u32) -> u32 {
+    fn next_node_id(&self, dest_id: u32, channel_id: u8) -> u32 {
         // tableにdest_idがあればそれに対応するnode_idを返す
         // なければparent_idを返す
         if let Some(node_id) = self.table.get(&dest_id) {
@@ -184,7 +184,7 @@ impl DefaultFunction {
 
     // フリットごとにチャネルを選択
     // デフォルト実装では仮想チャネルは使用しない
-    fn channel_id(&self, dest_id: u32) -> u32 {
+    fn channel_id(&self, dest_id: u32) -> u8 {
         0
     }
 

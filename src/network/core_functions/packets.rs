@@ -11,7 +11,7 @@ pub struct Packet {
     pub next_id: String,
     pub source_id: String,
     pub packet_id: u32,
-    pub channel_id: u32,
+    pub channel_id: u8,
 }
 
 impl Packet {
@@ -36,7 +36,7 @@ pub(crate) struct DefaultPacket {
     pub(crate) next_id: u32,
     pub(crate) source_id: u32,
     pub(crate) packet_id: u32,
-    pub(crate) channel_id: u32,
+    pub(crate) channel_id: u8,
 }
 
 impl DefaultPacket {
@@ -65,7 +65,7 @@ pub(crate) struct MultiTreePacket {
     pub(crate) next_id: u32,
     pub(crate) source_id: u32,
     pub(crate) packet_id: u32,
-    pub(crate) channel_id: u32,
+    pub(crate) channel_id: u8,
 }
 
 impl MultiTreePacket {

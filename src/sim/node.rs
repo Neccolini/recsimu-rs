@@ -24,7 +24,7 @@ pub struct Node {
 impl Node {
     pub fn new(
         id: &str,
-        vc_num: u32,
+        vc_num: u8,
         switching: &Switching,
         rf_kind: &str,
         node_type: &NodeType,
@@ -103,7 +103,7 @@ impl Node {
 }
 
 impl Node {
-    fn select_vc(&self) -> u32 {
+    fn select_vc(&self) -> u8 {
         0 // todo 複数チャネルに対応
     }
 }

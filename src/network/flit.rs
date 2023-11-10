@@ -1,5 +1,4 @@
 use crate::hardware::constants::DATA_BYTE_PER_FLIT;
-use crate::network::ChannelId;
 use crate::utils::div_ceil;
 use std::error;
 
@@ -122,7 +121,7 @@ impl Flit {
         }
     }
 
-    pub fn get_channel_id(&self) -> Option<ChannelId> {
+    pub fn get_channel_id(&self) -> Option<u8> {
         match self {
             Flit::Header(flit) => Some(flit.channel_id),
             Flit::Data(flit) => Some(flit.channel_id),
@@ -176,7 +175,7 @@ pub struct HeaderFlit {
     pub packet_id: u32,
     pub flits_len: u32,
     pub data: Vec<u8>,
-    pub channel_id: ChannelId,
+    pub channel_id: u8,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -189,7 +188,7 @@ pub struct TailFlit {
     pub resend_num: u8,
     pub data: Vec<u8>,
     pub packet_id: u32,
-    pub channel_id: ChannelId,
+    pub channel_id: u8,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -202,7 +201,7 @@ pub struct DataFlit {
     pub resend_num: u8,
     pub data: Vec<u8>,
     pub packet_id: u32,
-    pub channel_id: ChannelId,
+    pub channel_id: u8,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -211,7 +210,7 @@ pub struct AckFlit {
     pub dest_id: String,
     pub packet_id: u32,
     pub flit_num: u32,
-    pub channel_id: ChannelId,
+    pub channel_id: u8,
 }
 
 pub fn packet_to_flits(packet: &Packet) -> Vec<Flit> {

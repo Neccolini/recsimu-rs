@@ -164,7 +164,7 @@ impl MultiTreeFunction {
 // private functions
 #[allow(unused_variables)]
 impl MultiTreeFunction {
-    fn next_node_id(&self, dest_id: u32, channel_id: u32) -> u32 {
+    fn next_node_id(&self, dest_id: u32, channel_id: u8) -> u32 {
         // tableにdest_idがあればそれに対応するnode_idを返す
         // なければparent_idを返す
         if let Some(node_id) = self.table.get(&dest_id) {
@@ -185,7 +185,7 @@ impl MultiTreeFunction {
     }
 
     // フリットごとにチャネルを選択
-    fn channel_id(&self, dest_id: u32) -> u32 {
+    fn channel_id(&self, dest_id: u32) -> u8 {
         0
     }
 

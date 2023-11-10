@@ -16,23 +16,21 @@ use crate::network::flit::Flit;
 use crate::sim::node_type::NodeType;
 use std::collections::HashMap;
 
-pub type ChannelId = u32;
-
 #[derive(Debug, Clone)]
 pub struct Network {
     id: String,
     cur_cycle: u32,
     switching: Switching,
     core: CoreFunction,
-    sending_flit_buffer: HashMap<ChannelId, FlitBuffer>,
-    receiving_flit_buffer: HashMap<ChannelId, FlitBuffer>,
+    sending_flit_buffer: HashMap<u8, FlitBuffer>,
+    receiving_flit_buffer: HashMap<u8, FlitBuffer>,
     received_flits_buffer: ReceivedFlitsBuffer,
 }
 
 impl Network {
     pub fn new(
         id: &str,
-        vc_num: ChannelId,
+        vc_num: u8,
         switching: &Switching,
         rf_kind: &str,
         node_type: &NodeType,
@@ -46,7 +44,7 @@ impl Network {
             sending_flit_buffer.insert(i, FlitBuffer::new());
             receiving_flit_buffer.insert(i, FlitBuffer::new());
         }
-        let core = CoreFunction::new(rf_kind, node_type);
+        let core = CoreFunction::new(rf_kind, node_type, vc_num);
         let vid = core.get_id();
 
         add_to_vid_table(vid, id);
@@ -62,7 +60,7 @@ impl Network {
         }
     }
 
-    pub fn send_flit(&mut self, channel_id: ChannelId) -> Option<Flit> {
+    pub fn send_flit(&mut self, channel_id: u8) -> Option<Flit> {
         // sending_flit_bufferのchannel_id番目のFlitBufferからpopする
         if let Some(flit) = self.sending_flit_buffer.get_mut(&channel_id).unwrap().pop() {
             // log
@@ -101,7 +99,7 @@ impl Network {
 
         if self.switching == Switching::CutThrough {
             // ルーティングするフリットの処理
-            let channel_ids: Vec<ChannelId> = self.receiving_flit_buffer.keys().cloned().collect();
+            let channel_ids: Vec<u8> = self.receiving_flit_buffer.keys().cloned().collect();
             // receiving_flit_bufferからsending_flit_bufferへフリットを転送する
             for channel_id in channel_ids {
                 self.forward_flits(channel_id);
@@ -109,7 +107,7 @@ impl Network {
         }
     }
 
-    pub fn receive_flit(&mut self, flit: &Flit, channel_id: ChannelId) {
+    pub fn receive_flit(&mut self, flit: &Flit, channel_id: u8) {
         if let Flit::Ack(_) = flit {
             // ack flitは受け取らない
             return;
@@ -161,7 +159,7 @@ impl Network {
 }
 
 impl Network {
-    fn forward_flits(&mut self, channel_id: ChannelId) {
+    fn forward_flits(&mut self, channel_id: u8) {
         // receiving_flit_bufferからsending_flit_bufferへフリットを転送する
         if let Some(flit) = self
             .receiving_flit_buffer

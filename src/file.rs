@@ -7,11 +7,12 @@ use std::path::PathBuf;
 pub struct InputFile {
     pub node_num: u32,
     pub total_cycles: u32,
-    pub channel_num: u32,
+    pub channel_num: u8,
     pub switching: String,
     pub nodes: Vec<NodeInfo>,
     pub packets: Vec<PacketInfo>,
     pub neighbors: HashMap<String, Vec<String>>,
+    pub routing: Option<String>,
 }
 
 #[derive(Deserialize)]
