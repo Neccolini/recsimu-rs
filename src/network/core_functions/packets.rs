@@ -55,7 +55,6 @@ impl DefaultPacket {
     }
 }
 
-
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[allow(dead_code)]
 pub(crate) struct MultiTreePacket {

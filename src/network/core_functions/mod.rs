@@ -17,7 +17,10 @@ impl CoreFunction {
         #[allow(clippy::match_single_binding)]
         match rf_kind {
             "default" => CoreFunction::DefaultFunction(default::DefaultFunction::new(node_type)),
-            "multi_tree" => CoreFunction::MultiTreeFunction(multi_tree::MultiTreeFunction::new(node_type, channel_num)),
+            "multi_tree" => CoreFunction::MultiTreeFunction(multi_tree::MultiTreeFunction::new(
+                node_type,
+                channel_num,
+            )),
             _ => panic!("invalid routing function kind: {}", rf_kind),
         }
     }
