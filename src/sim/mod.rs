@@ -4,7 +4,7 @@ pub mod nodes;
 
 use crate::file::InputFile;
 use crate::hardware::switching::Switching;
-use crate::log::{aggregate_log, get_all_log, Log};
+use crate::log::{aggregate_log, get_all_log};
 use crate::network::core_functions::packets::InjectionPacket;
 use crate::recsimu_dbg;
 use std::collections::HashMap;
@@ -69,7 +69,6 @@ impl SimBuilder {
             nodes: Nodes::new(&nodes, &input.neighbors),
             total_cycles: input.total_cycles,
             vc_num: input.channel_num,
-            log: Log::new(),
             cur_cycles: 0,
         })
     }
@@ -81,7 +80,6 @@ pub struct Sim {
     pub cur_cycles: u32,
     pub vc_num: u32,
     pub nodes: Nodes,
-    pub log: Log,
 }
 
 impl Sim {

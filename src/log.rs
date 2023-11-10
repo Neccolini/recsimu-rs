@@ -40,13 +40,13 @@ cfg_if::cfg_if!(
 );
 
 #[derive(Debug, Clone, Default)]
-pub struct Log {
-    pub packets_info: HashMap<String, PacketLog>,
-    pub collision_info: Vec<CollisionInfo>,
+struct Log {
+    packets_info: HashMap<String, PacketLog>,
+    collision_info: Vec<CollisionInfo>,
 }
 
 impl Log {
-    pub fn new() -> Self {
+    fn new() -> Self {
         Self {
             packets_info: HashMap::new(),
             collision_info: Vec::new(),
@@ -56,23 +56,23 @@ impl Log {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct PacketLog {
-    pub packet_id: String,
-    pub from_id: String,
-    pub dest_id: String,
-    pub send_cycle: Option<u32>,
-    pub last_receive_cycle: Option<u32>,
-    pub flits_len: u32,
-    pub route_info: Vec<String>,
-    pub flit_logs: Vec<FlitLog>,
-    pub is_delivered: bool,
-    pub message: String,
+    packet_id: String,
+    from_id: String,
+    dest_id: String,
+    send_cycle: Option<u32>,
+    last_receive_cycle: Option<u32>,
+    flits_len: u32,
+    route_info: Vec<String>,
+    flit_logs: Vec<FlitLog>,
+    is_delivered: bool,
+    message: String,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct FlitLog {
-    pub received_cycle: u32,
-    pub from_id: String,
-    pub dest_id: String,
+    received_cycle: u32,
+    from_id: String,
+    dest_id: String,
 }
 
 #[derive(Debug, Clone)]
@@ -119,7 +119,7 @@ pub struct FlitLogInfo {
 
 impl FlitLogInfo {
     // NewFlitInfoをFlitInfoに変換する
-    pub fn to_flit_log(&self) -> FlitLog {
+    fn to_flit_log(&self) -> FlitLog {
         FlitLog {
             received_cycle: self.received_cycle,
             from_id: self.from_id.clone(),
@@ -195,11 +195,12 @@ pub fn clear_log() {
     log.packets_info.clear();
 }
 
+#[allow(unused)]
 #[derive(Debug, Clone)]
-pub struct CollisionInfo {
-    pub cycle: u32,
-    pub from_ids: Vec<String>,
-    pub dest_id: String,
+struct CollisionInfo {
+    cycle: u32,
+    from_ids: Vec<String>,
+    dest_id: String,
 }
 
 pub struct NewCollisionInfo {
