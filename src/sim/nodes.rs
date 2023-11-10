@@ -1,4 +1,5 @@
 use crate::hardware::state::State;
+use crate::log::{post_collision_info, NewCollisionInfo};
 use crate::network::flit::Flit;
 use crate::recsimu_dbg;
 use crate::sim::node::{Node, NodeId};
@@ -92,6 +93,11 @@ impl Nodes {
                     });
                 }
             } else {
+                post_collision_info(&NewCollisionInfo {
+                    cycle: cur_cycle,
+                    from_ids: flits.iter().map(|f| f.get_prev_id().unwrap()).collect(),
+                    dest_id: node.id.clone(),
+                });
                 recsimu_dbg!("collision occured at {}", node.id);
             }
         }
