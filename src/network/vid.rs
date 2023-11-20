@@ -1,8 +1,6 @@
 use std::collections::HashMap;
 use std::sync::Mutex;
 
-use crate::recsimu_dbg;
-
 cfg_if::cfg_if!(
     if #[cfg(not(test))]
     {
@@ -82,7 +80,6 @@ pub fn clear_vid_table() {
 
 pub fn get_vid(pid: &str) -> Option<u32> {
     let table = VID_TABLE.lock().expect("failed to lock VID_TABLE");
-    recsimu_dbg!("{:?}", table);
     table.p_to_v.get(pid).cloned()
 }
 
