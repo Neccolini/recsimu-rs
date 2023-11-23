@@ -1,0 +1,97 @@
+{
+  "node_num": 10,
+  "channel_num": 1,
+  "switching": "store_and_forward",
+  "routing": "multi_tree",
+  "nodes": [
+    {
+      "node_id": "0",
+      "node_type": "coordinator"
+    },
+    {
+      "node_id": "1",
+      "node_type": "router"
+    },
+    {
+      "node_id": "2",
+      "node_type": "router"
+    },
+    {
+      "node_id": "3",
+      "node_type": "router"
+    },
+    {
+      "node_id": "4",
+      "node_type": "router"
+    },
+    {
+      "node_id": "5",
+      "node_type": "router"
+    },    
+    {
+      "node_id": "6",
+      "node_type": "router"
+    },
+    {
+      "node_id": "7",
+      "node_type": "router"
+    },
+    {
+      "node_id": "8",
+      "node_type": "router"
+    },
+    {
+      "node_id": "9",
+      "node_type": "router"
+    }
+
+  ],
+  "neighbors": {
+    "0": [
+      "9",
+      "7",
+      "4"
+    ],
+    "1": [
+      "7",
+      "4"
+    ],
+    "2": [
+      "4",
+      "3"
+    ],
+    "3": [
+      "8",
+      "2"
+    ],
+    "4": [
+      "0",
+      "1",
+      "2",
+      "8"
+    ],
+    "5": [
+      "9"
+    ],
+    "6": [
+      "7",
+      "9"
+    ],
+    "7": [
+      "6",
+      "1",
+      "0"
+    ],
+    "8": [
+      "4",
+      "3"
+    ],
+    "9": [
+      "6",
+      "0",
+      "5"
+    ]
+  },
+  "total_cycles": 10000,
+  "packets": []
+}
