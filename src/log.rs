@@ -66,6 +66,7 @@ pub struct PacketLog {
     flit_logs: Vec<FlitLog>,
     is_delivered: bool,
     message: String,
+    channel_id: u8,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -82,6 +83,7 @@ pub struct NewPacketLogInfo {
     pub dest_id: String,
     pub flits_len: u32,
     pub message: String,
+    pub channel_id: u8,
 }
 
 pub fn post_new_packet_log(
@@ -100,6 +102,7 @@ pub fn post_new_packet_log(
         flit_logs: Vec::new(),
         is_delivered: false,
         message: packet_info.message.clone(),
+        channel_id: packet_info.channel_id,
     };
 
     LOG.lock()
@@ -283,6 +286,7 @@ mod tests {
             dest_id: "dest_id".to_string(),
             flits_len: 2,
             message: "test".to_string(),
+            channel_id: 0,
         };
         let packet_log = post_new_packet_log(&packet_info).unwrap();
         assert_eq!(packet_log.packet_id, "packet_id");
@@ -303,6 +307,7 @@ mod tests {
             dest_id: "dest_id".to_string(),
             flits_len: 3,
             message: "test".to_string(),
+            channel_id: 0,
         };
         let packet_log = post_new_packet_log(&packet_info).unwrap();
 
@@ -332,6 +337,7 @@ mod tests {
             dest_id: "dest_id".to_string(),
             flits_len: 1,
             message: "test".to_string(),
+            channel_id: 0,
         };
         let packet_log = post_new_packet_log(&packet_info).unwrap();
 
