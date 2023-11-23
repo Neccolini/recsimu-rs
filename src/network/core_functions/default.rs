@@ -263,15 +263,7 @@ impl DefaultFunction {
 
             // address to me, "jack"
             (id, "jack") if id == self.id => {
-                // tableに追加
-                self.update_table(packet.source_id, packet.prev_id);
-                // packを返す
-                let channel_id = self.channel_id(packet.source_id);
-                let next_id = self.next_node_id(packet.source_id, channel_id);
-
-                let packet =
-                    self.gen_packet(self.id, packet.source_id, next_id, "pack".to_string());
-                return vec![packet];
+                panic!("jack destination cannot be coordinator");
             }
 
             // address to me, user packet
