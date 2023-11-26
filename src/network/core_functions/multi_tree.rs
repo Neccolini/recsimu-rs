@@ -186,7 +186,7 @@ impl MultiTreeFunction {
                     .map(|(i, _)| i)
                     .collect();
 
-                assert!(indices.len() > 0);
+                assert!(!indices.is_empty());
 
                 let random_channel_id = indices[rng.gen_range(0..indices.len())];
 
@@ -304,7 +304,7 @@ impl MultiTreeFunction {
                 }
 
                 if channel_id as u32 != self.id - 1
-                    && self.network_joined[channel_id as usize] == false
+                    && !self.network_joined[channel_id as usize]
                 {
                     return vec![];
                 }
@@ -404,7 +404,7 @@ impl MultiTreeFunction {
                         .map(|(i, _)| i)
                         .collect();
 
-                    assert!(indices.len() > 0);
+                    assert!(!indices.is_empty());
 
                     let random_channel_id = indices[rng.gen_range(0..indices.len())] as u8;
 
@@ -484,7 +484,7 @@ impl MultiTreeFunction {
                     .map(|(i, _)| i)
                     .collect();
 
-                assert!(indices.len() > 0);
+                assert!(!indices.is_empty());
 
                 let random_channel_id = indices[rng.gen_range(0..indices.len())] as u8;
 
@@ -570,7 +570,7 @@ impl MultiTreeFunction {
                         .map(|(i, _)| i)
                         .collect();
 
-                    assert!(indices.len() > 0);
+                    assert!(!indices.is_empty());
 
                     let random_channel_id = indices[rng.gen_range(0..indices.len())] as u8;
 

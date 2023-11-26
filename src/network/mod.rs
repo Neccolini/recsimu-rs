@@ -60,7 +60,7 @@ impl Network {
             receiving_flit_buffer,
             received_flits_buffer: ReceivedFlitsBuffer::new(),
             send_history: (false, Flit::default()),
-            channel_num: vc_num as u8,
+            channel_num: vc_num,
         }
     }
 
