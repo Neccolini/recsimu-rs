@@ -303,9 +303,7 @@ impl MultiTreeFunction {
                     channel_id = self.id as u8 - 1;
                 }
 
-                if channel_id as u32 != self.id - 1
-                    && !self.network_joined[channel_id as usize]
-                {
+                if channel_id as u32 != self.id - 1 && !self.network_joined[channel_id as usize] {
                     return vec![];
                 }
 
