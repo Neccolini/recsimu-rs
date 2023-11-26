@@ -25,6 +25,8 @@ pub struct Network {
     sending_flit_buffer: HashMap<u8, FlitBuffer>,
     receiving_flit_buffer: HashMap<u8, FlitBuffer>,
     received_flits_buffer: ReceivedFlitsBuffer,
+    send_history: (bool, Flit),
+    channel_num: u8,
 }
 
 impl Network {
@@ -57,14 +59,21 @@ impl Network {
             sending_flit_buffer,
             receiving_flit_buffer,
             received_flits_buffer: ReceivedFlitsBuffer::new(),
+            send_history: (false, Flit::default()),
+            channel_num: vc_num as u8,
         }
     }
 
-    pub fn send_flit(&mut self, channel_id: u8) -> Option<Flit> {
+    pub fn send_flit(&mut self) -> Option<Flit> {
         // sending_flit_bufferのchannel_id番目のFlitBufferからpopする
+        let channel_id = self.select_channel();
         if let Some(flit) = self.sending_flit_buffer.get_mut(&channel_id).unwrap().pop() {
             // log
             self.log_handler(Some(&flit), None);
+
+            // history
+            self.send_history.1 = flit.clone();
+            self.send_history.0 = !flit.is_last();
 
             return Some(flit);
         }
@@ -88,7 +97,11 @@ impl Network {
             // 送信待ちのパケットがあったら
             // sending_flit_bufferのchannel_id番目のFlitBufferにpushする
             for flit in flits {
-                let channel_id = flit.get_channel_id().unwrap();
+                let mut channel_id = flit.get_channel_id().unwrap();
+
+                if channel_id > self.channel_num {
+                    channel_id = 0;
+                }
 
                 self.sending_flit_buffer
                     .get_mut(&channel_id)
@@ -112,6 +125,12 @@ impl Network {
             // ack flitは受け取らない
             return;
         }
+
+        let channel_id = if channel_id > self.channel_num {
+            0
+        } else {
+            channel_id
+        };
 
         // 自分が最終的な宛先なら
         if flit.get_dest_id().unwrap() == self.id || flit.get_dest_id().unwrap() == "broadcast" {
@@ -177,6 +196,29 @@ impl Network {
         }
     }
 
+    fn select_channel(&self) -> u8 {
+        // historyを見て現在送信中のパケットがあったらそれが優先
+        if !self.send_history.1.is_empty() && self.send_history.0 {
+            return self.send_history.1.get_channel_id().unwrap();
+        }
+
+        // 送信待ちのフリットがあるchannel_idを返す
+        let channel_ids: Vec<u8> = self.sending_flit_buffer.keys().cloned().collect();
+        for channel_id in channel_ids {
+            if !self
+                .sending_flit_buffer
+                .get(&channel_id)
+                .unwrap()
+                .is_empty()
+            {
+                return channel_id;
+            }
+        }
+
+        // 送信待ちのフリットがない場合は適当に0を返す
+        0
+    }
+
     fn log_handler(&self, flit: Option<&Flit>, packet: Option<&Packet>) {
         // 雑なassertion
         assert!(flit.is_some() || packet.is_some());
@@ -219,6 +261,7 @@ impl Network {
                 dest_id: packet.dest_id.clone(),
                 flits_len: packet.get_flits_len(),
                 message: self.core.get_message(packet),
+                channel_id: packet.channel_id,
             };
 
             let _ = post_new_packet_log(&log);
@@ -250,10 +293,10 @@ mod tests {
         network.update(0);
 
         // preq
-        network.send_flit(0).unwrap();
+        network.send_flit().unwrap();
 
         network.update(1);
-        let flit = network.send_flit(0).unwrap();
+        let flit = network.send_flit().unwrap();
 
         assert_eq!(flit.get_source_id().unwrap(), "test".to_string());
         assert_eq!(flit.get_dest_id().unwrap(), "broadcast".to_string());
@@ -283,10 +326,10 @@ mod tests {
         network.update(0);
 
         // preq
-        network.send_flit(0).unwrap();
+        network.send_flit().unwrap();
 
         network.update(1);
-        let flit = network.send_flit(0).unwrap();
+        let flit = network.send_flit().unwrap();
 
         assert_eq!(flit.get_source_id().unwrap(), "test".to_string());
         assert_eq!(flit.get_dest_id().unwrap(), "broadcast".to_string());

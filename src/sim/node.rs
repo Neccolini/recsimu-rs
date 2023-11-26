@@ -75,10 +75,8 @@ impl Node {
 
         // retransmission_bufferが空なら
         if self.hardware.retransmission_buffer.is_empty() {
-            // 仮想channelを選択
-            let channel = self.select_vc();
             // network.send_flit_bufferからフリットを取り出す
-            if let Some(flit) = self.network.send_flit(channel) {
+            if let Some(flit) = self.network.send_flit() {
                 self.hardware.send_flit(&flit).map_err(|e| {
                     dbg!("error occured while sending a flit: {e:?}");
                     e
@@ -99,11 +97,5 @@ impl Node {
             self.network.receive_flit(&flit, 0);
         }
         Ok(())
-    }
-}
-
-impl Node {
-    fn select_vc(&self) -> u8 {
-        0 // todo 複数チャネルに対応
     }
 }
