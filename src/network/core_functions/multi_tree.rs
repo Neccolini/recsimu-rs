@@ -556,10 +556,6 @@ impl MultiTreeFunction {
                 // channel_id番目のnetwork_joinedをtrue
                 self.network_joined[packet.channel_id as usize] = true;
 
-                if self.network_joined.iter().all(|&x| x) {
-                    dbg!("network joined", self.id);
-                }
-
                 if self.parent_ids.iter().any(|&x| x == 0) {
                     let mut rng = rand::thread_rng();
                     let indices: Vec<usize> = self
