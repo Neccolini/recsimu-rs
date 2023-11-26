@@ -1,0 +1,35 @@
+{
+  "node_num": 3,
+  "total_cycles": 350,
+  "channel_num": 1,
+  "switching": "store_and_forward",
+  "routing": "multi_tree",
+  "nodes": [
+    {
+      "node_id": "node1",
+      "node_type": "coordinator"
+    },
+    {
+      "node_id": "node2",
+      "node_type": "router"
+    },
+    {
+      "node_id": "node3",
+      "node_type": "router"
+    }
+  ],
+  "packets": [
+  ],
+  "neighbors": {
+    "node1": [
+      "node2"
+    ],
+    "node2": [
+      "node1",
+      "node3"
+    ],
+    "node3": [
+      "node2"
+    ]
+  }
+}

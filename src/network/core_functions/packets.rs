@@ -11,7 +11,7 @@ pub struct Packet {
     pub next_id: String,
     pub source_id: String,
     pub packet_id: u32,
-    pub channel_id: u32,
+    pub channel_id: u8,
 }
 
 impl Packet {
@@ -36,7 +36,7 @@ pub(crate) struct DefaultPacket {
     pub(crate) next_id: u32,
     pub(crate) source_id: u32,
     pub(crate) packet_id: u32,
-    pub(crate) channel_id: u32,
+    pub(crate) channel_id: u8,
 }
 
 impl DefaultPacket {
@@ -55,13 +55,30 @@ impl DefaultPacket {
     }
 }
 
-pub fn encode_id(id: u32, from_id: u32) -> String {
-    // <from_id>_<id>
-    format!("{}_{}", from_id, id)
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[allow(dead_code)]
+pub(crate) struct MultiTreePacket {
+    pub(crate) message: String,
+    pub(crate) dest_id: u32,
+    pub(crate) prev_id: u32,
+    pub(crate) next_id: u32,
+    pub(crate) source_id: u32,
+    pub(crate) packet_id: u32,
+    pub(crate) channel_id: u8,
 }
 
-pub fn decode_id(id: &str) -> u32 {
-    // <from_id>_<id>
-    let id = id.split('_').collect::<Vec<&str>>();
-    id[1].parse::<u32>().unwrap()
+impl MultiTreePacket {
+    pub(crate) fn from_general(gp: &Packet) -> Self {
+        // dataをでコード
+        let mut dp = bincode::deserialize::<MultiTreePacket>(gp.data.as_slice())
+            .map_err(|e| {
+                panic!("error occured while serializing a packet: {e:?}");
+            })
+            .unwrap();
+
+        dp.prev_id = get_vid(&gp.prev_id).unwrap();
+        dp.next_id = get_vid(&gp.next_id).unwrap();
+
+        dp
+    }
 }

@@ -30,6 +30,7 @@ impl SimBuilder {
         let input = InputFile::new(self.path.clone());
 
         let switching = input.switching.parse::<Switching>()?;
+        let routing = input.routing.unwrap_or("default".to_string());
 
         let nodes: Vec<Node> = input
             .nodes
@@ -55,7 +56,7 @@ impl SimBuilder {
                     &node.node_id,
                     input.channel_num,
                     &switching.clone(),
-                    "default",
+                    &routing,
                     &NodeType::new(&node.node_type),
                     &packets,
                 )
@@ -68,8 +69,9 @@ impl SimBuilder {
             node_num: input.node_num,
             nodes: Nodes::new(&nodes, &input.neighbors),
             total_cycles: input.total_cycles,
-            vc_num: input.channel_num,
+            channel_num: input.channel_num,
             cur_cycles: 0,
+            log_range: input.log_range.unwrap_or(vec![0, input.total_cycles]),
         })
     }
 }
@@ -78,14 +80,16 @@ pub struct Sim {
     pub node_num: u32,
     pub total_cycles: u32,
     pub cur_cycles: u32,
-    pub vc_num: u32,
+    pub channel_num: u8,
     pub nodes: Nodes,
+    pub log_range: Vec<u32>,
 }
 
 impl Sim {
     pub fn run(&mut self) {
         // シミュレーションを実行する
         while self.cur_cycles < self.total_cycles {
+            recsimu_dbg!("cycle: {}", self.cur_cycles);
             self.nodes.run_cycle(self.cur_cycles);
             self.cur_cycles += 1;
         }
@@ -94,7 +98,7 @@ impl Sim {
             recsimu_dbg!("{:?}", log);
         });
 
-        println!("{:?}", aggregate_log());
+        println!("{:?}", aggregate_log(self.log_range[0], self.log_range[1]));
     }
 }
 
@@ -110,7 +114,7 @@ mod tests {
 
         assert_eq!(sim.node_num, 2);
         assert_eq!(sim.total_cycles, 50);
-        assert_eq!(sim.vc_num, 1);
+        assert_eq!(sim.channel_num, 1);
         assert_eq!(sim.cur_cycles, 0);
         assert_eq!(sim.nodes.nodes.len(), 2);
         assert_eq!(sim.nodes.nodes[0].id, "node1");

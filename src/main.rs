@@ -105,7 +105,7 @@ mod tests {
                     sim.run();
 
                     for node in sim.nodes.nodes.iter() {
-                        assert_eq!(node.network.is_joined(), true);
+                        assert_eq!(node.network.is_joined(), true, "{:?}", path.clone());
                     }
                 }
             }

@@ -1,0 +1,32 @@
+{
+  "node_num": 2,
+  "total_cycles": 50,
+  "channel_num": 1,
+  "switching": "store_and_forward",
+  "nodes": [
+    {
+      "node_id": "node1",
+      "node_type": "coordinator"
+    },
+    {
+      "node_id": "node2",
+      "node_type": "router"
+    }
+  ],
+  "packets": [
+    {
+      "cycle_num": 40,
+      "src_id": "node1",
+      "dest_id": "node2",
+      "msg": "Hello, World!"
+    }
+  ],
+  "neighbors": {
+    "node1": [
+      "node2"
+    ],
+    "node2": [
+      "node1"
+    ]
+  }
+}

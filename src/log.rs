@@ -66,6 +66,7 @@ pub struct PacketLog {
     flit_logs: Vec<FlitLog>,
     is_delivered: bool,
     message: String,
+    channel_id: u8,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -82,6 +83,7 @@ pub struct NewPacketLogInfo {
     pub dest_id: String,
     pub flits_len: u32,
     pub message: String,
+    pub channel_id: u8,
 }
 
 pub fn post_new_packet_log(
@@ -100,6 +102,7 @@ pub fn post_new_packet_log(
         flit_logs: Vec::new(),
         is_delivered: false,
         message: packet_info.message.clone(),
+        channel_id: packet_info.channel_id,
     };
 
     LOG.lock()
@@ -222,7 +225,7 @@ pub fn post_collision_info(info: &NewCollisionInfo) {
 }
 
 // ログの集計
-pub fn aggregate_log() -> HashMap<String, f64> {
+pub fn aggregate_log(begin: u32, end: u32) -> HashMap<String, f64> {
     // 必要な情報は，パケットの送信にかかった平均サイクル数
     let log = LOG.lock().expect("failed to lock log");
 
@@ -233,6 +236,12 @@ pub fn aggregate_log() -> HashMap<String, f64> {
     let mut jack_max_cycle = 0;
 
     for (_, packet_log) in log.packets_info.iter() {
+        if packet_log.send_cycle.is_none() {
+            continue;
+        }
+        if packet_log.send_cycle.unwrap() < begin || packet_log.send_cycle.unwrap() > end {
+            continue;
+        }
         if packet_log.is_delivered {
             if packet_log.last_receive_cycle.unwrap() < packet_log.send_cycle.unwrap() {
                 panic!("{:?}", packet_log);
@@ -283,6 +292,7 @@ mod tests {
             dest_id: "dest_id".to_string(),
             flits_len: 2,
             message: "test".to_string(),
+            channel_id: 0,
         };
         let packet_log = post_new_packet_log(&packet_info).unwrap();
         assert_eq!(packet_log.packet_id, "packet_id");
@@ -303,6 +313,7 @@ mod tests {
             dest_id: "dest_id".to_string(),
             flits_len: 3,
             message: "test".to_string(),
+            channel_id: 0,
         };
         let packet_log = post_new_packet_log(&packet_info).unwrap();
 
@@ -332,6 +343,7 @@ mod tests {
             dest_id: "dest_id".to_string(),
             flits_len: 1,
             message: "test".to_string(),
+            channel_id: 0,
         };
         let packet_log = post_new_packet_log(&packet_info).unwrap();
 
