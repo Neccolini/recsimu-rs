@@ -13,6 +13,7 @@ pub struct InputFile {
     pub packets: Vec<PacketInfo>,
     pub neighbors: HashMap<String, Vec<String>>,
     pub routing: Option<String>,
+    pub log_range: Option<Vec<u32>>,
 }
 
 #[derive(Deserialize)]

@@ -225,7 +225,7 @@ pub fn post_collision_info(info: &NewCollisionInfo) {
 }
 
 // ログの集計
-pub fn aggregate_log() -> HashMap<String, f64> {
+pub fn aggregate_log(begin: u32, end: u32) -> HashMap<String, f64> {
     // 必要な情報は，パケットの送信にかかった平均サイクル数
     let log = LOG.lock().expect("failed to lock log");
 
@@ -236,6 +236,12 @@ pub fn aggregate_log() -> HashMap<String, f64> {
     let mut jack_max_cycle = 0;
 
     for (_, packet_log) in log.packets_info.iter() {
+        if packet_log.send_cycle.is_none() {
+            continue;
+        }
+        if packet_log.send_cycle.unwrap() < begin || packet_log.send_cycle.unwrap() > end {
+            continue;
+        }
         if packet_log.is_delivered {
             if packet_log.last_receive_cycle.unwrap() < packet_log.send_cycle.unwrap() {
                 panic!("{:?}", packet_log);

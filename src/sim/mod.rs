@@ -71,6 +71,7 @@ impl SimBuilder {
             total_cycles: input.total_cycles,
             channel_num: input.channel_num,
             cur_cycles: 0,
+            log_range: input.log_range.unwrap_or(vec![0, input.total_cycles]),
         })
     }
 }
@@ -81,6 +82,7 @@ pub struct Sim {
     pub cur_cycles: u32,
     pub channel_num: u8,
     pub nodes: Nodes,
+    pub log_range: Vec<u32>,
 }
 
 impl Sim {
@@ -96,7 +98,7 @@ impl Sim {
             recsimu_dbg!("{:?}", log);
         });
 
-        println!("{:?}", aggregate_log());
+        println!("{:?}", aggregate_log(self.log_range[0], self.log_range[1]));
     }
 }
 
