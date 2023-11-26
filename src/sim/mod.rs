@@ -87,6 +87,7 @@ impl Sim {
     pub fn run(&mut self) {
         // シミュレーションを実行する
         while self.cur_cycles < self.total_cycles {
+            recsimu_dbg!("cycle: {}", self.cur_cycles);
             self.nodes.run_cycle(self.cur_cycles);
             self.cur_cycles += 1;
         }
