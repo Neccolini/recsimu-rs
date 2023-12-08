@@ -3,7 +3,6 @@ use crate::network::core_functions::packets::MultiTreePacket;
 use crate::network::flit::Flit;
 use crate::network::vid::get_pid;
 use crate::network::vid::get_vid;
-use crate::recsimu_dbg;
 use crate::sim::node_type::NodeType;
 use once_cell::sync::Lazy;
 use rand::Rng;
@@ -145,12 +144,6 @@ impl MultiTreeFunction {
     }
 
     pub fn update(&mut self) {
-        recsimu_dbg!(
-            "{} {:?} {:?}",
-            self.id,
-            self.parent_ids,
-            self.network_joined
-        );
         // ランダムな確率でpackを送信
         let mut rng = rand::thread_rng();
         let p: f64 = rng.gen();
@@ -174,7 +167,6 @@ impl MultiTreeFunction {
 
                 self.send_packet_buffer.push_back(new_packet);
             } else if self.parent_ids.iter().any(|&x| x == 0) {
-                recsimu_dbg!("{} {:?}", self.id, self.parent_ids);
                 // 0があれば
                 // 0の要素のindexからランダムに選択
                 let mut rng = rand::thread_rng();
@@ -212,8 +204,6 @@ impl MultiTreeFunction {
     }
 
     pub fn forward_flit(&mut self, flit: &Flit) -> Flit {
-        recsimu_dbg!("forward_flit {} {:?}", self.id, flit.clone());
-
         let dest_vid = get_vid(&flit.get_dest_id().unwrap()).unwrap();
         let next_vid = self.next_node_id(dest_vid, flit.get_channel_id().unwrap());
 
@@ -246,7 +236,6 @@ impl MultiTreeFunction {
     fn next_node_id(&self, dest_id: u32, channel_id: u8) -> u32 {
         // tableにdest_idがあればそれに対応するnode_idを返す
         // なければparent_idを返す
-        recsimu_dbg!("{} {:?}", self.id, self.tables);
         let node_id = self
             .tables
             .get(channel_id as usize)
@@ -271,9 +260,11 @@ impl MultiTreeFunction {
     }
 
     // フリットごとにチャネルを選択
-    fn channel_id(&self, dest_id: u32) -> u8 {
+    fn channel_id(&mut self, dest_id: u32) -> u8 {
         // ラウンドロビンでチャネルを選択
-        (self.channel_history + 1) % self.channel_num
+        let channel_id = (self.channel_history + 1) % self.channel_num;
+        self.channel_history = channel_id;
+        channel_id
     }
 
     fn process_received_packet(&mut self, packet: &MultiTreePacket) -> Vec<MultiTreePacket> {
@@ -281,7 +272,6 @@ impl MultiTreeFunction {
         if packet.next_id != self.id && packet.next_id != BROADCAST_ID {
             return vec![];
         }
-        recsimu_dbg!("{} {:?}", self.id, packet.clone());
         match self.node_type {
             NodeType::Coordinator => self.process_received_packet_coordinator(packet),
             NodeType::Router => self.process_received_packet_router(packet),
@@ -306,8 +296,6 @@ impl MultiTreeFunction {
                 if channel_id as u32 != self.id - 1 && !self.network_joined[channel_id as usize] {
                     return vec![];
                 }
-
-                recsimu_dbg!("preq received at {} {:?}", self.id, packet);
 
                 let packet = self.gen_packet(
                     self.id,
@@ -368,7 +356,6 @@ impl MultiTreeFunction {
 
             // address to me, "jreq"
             (id, "jreq") if id == self.id => {
-                recsimu_dbg!("jreq {} {:?}", self.id, packet.clone());
                 if packet.channel_id as u32 + 1 != self.id {
                     return vec![];
                 }
@@ -391,6 +378,10 @@ impl MultiTreeFunction {
             (id, "jack") if id == self.id => {
                 // channel_id番目のnetwork_joinedをtrue
                 self.network_joined[packet.channel_id as usize] = true;
+
+                if self.is_joined() {
+                    // recsimu_dbg!("{} {:?}", get_pid(self.id).unwrap(), self.parent_ids.iter().map(|&x| get_pid(x).unwrap()).collect::<Vec<String>>());
+                }
 
                 if self.parent_ids.iter().any(|&x| x == 0) {
                     let mut rng = rand::thread_rng();
@@ -553,6 +544,10 @@ impl MultiTreeFunction {
             (id, "jack") if id == self.id => {
                 // channel_id番目のnetwork_joinedをtrue
                 self.network_joined[packet.channel_id as usize] = true;
+
+                if self.is_joined() {
+                    // recsimu_dbg!("{} {:?}", get_pid(self.id).unwrap(), self.parent_ids.iter().map(|&x| get_pid(x).unwrap()).collect::<Vec<String>>());
+                }
 
                 if self.parent_ids.iter().any(|&x| x == 0) {
                     let mut rng = rand::thread_rng();
