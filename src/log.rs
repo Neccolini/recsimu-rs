@@ -2,6 +2,8 @@ use std::collections::HashMap;
 use std::error;
 use std::sync::Mutex;
 
+use crate::recsimu_dbg;
+
 cfg_if::cfg_if!(
     if #[cfg(not(test))]
     {
@@ -232,8 +234,10 @@ pub fn aggregate_log(begin: u32, end: u32) -> HashMap<String, f64> {
     let mut sum = 0.0;
     let mut count = 0;
     let mut undelivered_count = 0;
-    let mut flits_count = 0;
     let mut jack_max_cycle = 0;
+
+    let mut packet_count = 0;
+    let mut flits_count = 0;
 
     for (_, packet_log) in log.packets_info.iter() {
         if packet_log.send_cycle.is_none() {
@@ -250,6 +254,8 @@ pub fn aggregate_log(begin: u32, end: u32) -> HashMap<String, f64> {
                 / packet_log.flits_len as f64;
             count += 1;
 
+            recsimu_dbg!("{:?}", packet_log);
+
             if packet_log.message == "jack"
                 && packet_log.last_receive_cycle.unwrap() > jack_max_cycle
             {
@@ -258,10 +264,13 @@ pub fn aggregate_log(begin: u32, end: u32) -> HashMap<String, f64> {
         } else {
             undelivered_count += 1;
         }
+        packet_count += 1;
         flits_count += packet_log.flits_len;
     }
 
     let mut result = HashMap::new();
+
+    // assert!(jack_max_cycle == 0);
 
     result.insert("average_cycle".to_string(), sum / count as f64);
     result.insert("undelivered_packets".to_string(), undelivered_count as f64);
@@ -270,7 +279,7 @@ pub fn aggregate_log(begin: u32, end: u32) -> HashMap<String, f64> {
     result.insert("jack_max_cycle".to_string(), jack_max_cycle as f64);
     result.insert(
         "average_flits_len".to_string(),
-        flits_count as f64 / log.packets_info.len() as f64,
+        flits_count as f64 / packet_count as f64,
     );
     result.insert(
         "collision_count".to_string(),
