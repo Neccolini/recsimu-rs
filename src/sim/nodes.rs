@@ -1,7 +1,6 @@
 use crate::hardware::state::State;
 use crate::log::{post_collision_info, NewCollisionInfo};
 use crate::network::flit::Flit;
-use crate::recsimu_dbg;
 use crate::sim::node::{Node, NodeId};
 use std::collections::HashMap;
 
@@ -98,7 +97,6 @@ impl Nodes {
                     from_ids: flits.iter().map(|f| f.get_prev_id().unwrap()).collect(),
                     dest_id: node.id.clone(),
                 });
-                recsimu_dbg!("collision occured at {}", node.id);
             }
         }
 

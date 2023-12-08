@@ -243,7 +243,11 @@ impl Network {
                 } else {
                     None
                 },
-                route_info: Some(self.id.clone()),
+                route_info: if flit.is_header() {
+                    Some(self.id.clone())
+                } else {
+                    None
+                },
                 is_delivered: Some(is_delivered),
                 flit_log: None,
             };

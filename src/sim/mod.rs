@@ -4,9 +4,9 @@ pub mod nodes;
 
 use crate::file::InputFile;
 use crate::hardware::switching::Switching;
-use crate::log::{aggregate_log, get_all_log};
+use crate::log::aggregate_log;
 use crate::network::core_functions::packets::InjectionPacket;
-use crate::recsimu_dbg;
+
 use std::collections::HashMap;
 use std::{error, path::Path, path::PathBuf};
 
@@ -89,14 +89,9 @@ impl Sim {
     pub fn run(&mut self) {
         // シミュレーションを実行する
         while self.cur_cycles < self.total_cycles {
-            recsimu_dbg!("cycle: {}", self.cur_cycles);
             self.nodes.run_cycle(self.cur_cycles);
             self.cur_cycles += 1;
         }
-
-        get_all_log().iter().for_each(|log| {
-            recsimu_dbg!("{:?}", log);
-        });
 
         println!("{:?}", aggregate_log(self.log_range[0], self.log_range[1]));
     }
