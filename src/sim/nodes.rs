@@ -91,7 +91,7 @@ impl Nodes {
                         );
                     });
                 }
-            } else {
+            } else if flits.len() >= 2 {
                 post_collision_info(&NewCollisionInfo {
                     cycle: cur_cycle,
                     from_ids: flits.iter().map(|f| f.get_prev_id().unwrap()).collect(),
