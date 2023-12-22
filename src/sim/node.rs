@@ -98,4 +98,8 @@ impl Node {
         }
         Ok(())
     }
+
+    pub fn shutdown(&mut self) {}
+
+    pub fn reboot(&mut self) {}
 }

@@ -1,12 +1,13 @@
 pub mod node;
 pub(crate) mod node_type;
 pub mod nodes;
+pub(crate) mod rec;
 
 use crate::file::InputFile;
 use crate::hardware::switching::Switching;
 use crate::log::aggregate_log;
 use crate::network::core_functions::packets::InjectionPacket;
-
+use crate::sim::rec::RecTable;
 use std::collections::HashMap;
 use std::{error, path::Path, path::PathBuf};
 
@@ -65,9 +66,14 @@ impl SimBuilder {
 
         add_to_vid_table(u32::MAX, "broadcast");
         // print_vid_table();
+        
+        let rec_table = RecTable {
+            table: input.rec_table.clone().unwrap_or_default(),
+        };
+
         Ok(Sim {
             node_num: input.node_num,
-            nodes: Nodes::new(&nodes, &input.neighbors),
+            nodes: Nodes::new(&nodes, &input.neighbors, &rec_table),
             total_cycles: input.total_cycles,
             channel_num: input.channel_num,
             cur_cycles: 0,

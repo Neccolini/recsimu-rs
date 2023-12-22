@@ -1,8 +1,8 @@
+use crate::sim::rec::Update;
 use crate::utils::read_json;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::path::PathBuf;
-
 #[derive(Deserialize)]
 pub struct InputFile {
     pub node_num: u32,
@@ -13,6 +13,7 @@ pub struct InputFile {
     pub packets: Vec<PacketInfo>,
     pub neighbors: HashMap<String, Vec<String>>,
     pub routing: Option<String>,
+    pub rec_table: Option<HashMap<u32, Update>>,
     pub log_range: Option<Vec<u32>>,
 }
 

@@ -2,21 +2,27 @@ use crate::hardware::state::State;
 use crate::log::{post_collision_info, NewCollisionInfo};
 use crate::network::flit::Flit;
 use crate::sim::node::{Node, NodeId};
+use crate::sim::rec::RecTable;
 use std::collections::HashMap;
-
 pub struct Nodes {
     pub nodes: Vec<Node>,
     pub flit_buffers: HashMap<NodeId, Vec<Flit>>,
     // ノードの隣接情報を保持するHashMap
     pub neighbors: HashMap<NodeId, Vec<NodeId>>,
+    pub rec_table: RecTable,
 }
 
 impl Nodes {
-    pub fn new(nodes: &[Node], neighbors: &HashMap<NodeId, Vec<NodeId>>) -> Self {
+    pub fn new(
+        nodes: &[Node],
+        neighbors: &HashMap<NodeId, Vec<NodeId>>,
+        rec_table: &RecTable,
+    ) -> Self {
         Self {
             nodes: nodes.to_owned(),
             flit_buffers: HashMap::new(),
             neighbors: neighbors.clone(),
+            rec_table: rec_table.clone(),
         }
     }
 
@@ -104,6 +110,11 @@ impl Nodes {
         self.flit_buffers.clear();
     }
     fn update_nodes(&mut self, cur_cycle: u32) {
+        // update system topology
+        if let Some(update) = self.rec_table.clone().table.get(&cur_cycle) {
+            self.update_system(&update.new_neighbors);
+        }
+
         // 各ノードの状態を更新する
         for node in self.nodes.iter_mut() {
             let _ = node.update(cur_cycle).map_err(|e| {
@@ -113,6 +124,10 @@ impl Nodes {
                 );
             });
         }
+    }
+
+    fn update_system(&mut self, new_neighbors: &HashMap<String, Vec<String>>) {
+        self.neighbors = new_neighbors.clone();
     }
 }
 
@@ -135,6 +150,10 @@ mod tests {
         neighbors.insert("node1".to_string(), vec!["node2".to_string()]);
         neighbors.insert("node2".to_string(), vec!["node1".to_string()]);
 
+        let rec_table = RecTable {
+            table: HashMap::new(),
+        };
+
         let mut nodes = Nodes::new(
             &vec![
                 Node::new(
@@ -155,6 +174,7 @@ mod tests {
                 ),
             ],
             &neighbors,
+            &rec_table,
         );
 
         nodes.run_cycle(0);
