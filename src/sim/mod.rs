@@ -66,7 +66,7 @@ impl SimBuilder {
 
         add_to_vid_table(u32::MAX, "broadcast");
         // print_vid_table();
-        
+
         let rec_table = RecTable {
             table: input.rec_table.clone().unwrap_or_default(),
         };

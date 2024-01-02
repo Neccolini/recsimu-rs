@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 #[derive(Clone, Debug)]
 pub struct RecTable {
-    pub(crate) table: HashMap<u32, Update>,
+    pub(crate) table: HashMap<u32, Update>, // cycle, update
 }
 
 #[derive(Clone, Debug, Deserialize)]

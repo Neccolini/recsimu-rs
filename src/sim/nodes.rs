@@ -1,6 +1,7 @@
 use crate::hardware::state::State;
 use crate::log::{post_collision_info, NewCollisionInfo};
 use crate::network::flit::Flit;
+use crate::network::option::{self, UpdateOption};
 use crate::sim::node::{Node, NodeId};
 use crate::sim::rec::RecTable;
 use std::collections::HashMap;
@@ -109,21 +110,41 @@ impl Nodes {
         // flit_buffersをクリア
         self.flit_buffers.clear();
     }
+
     fn update_nodes(&mut self, cur_cycle: u32) {
-        // update system topology
-        if let Some(update) = self.rec_table.clone().table.get(&cur_cycle) {
-            self.update_system(&update.new_neighbors);
+        if let Some(update_info) = self.rec_table.clone().table.get(&cur_cycle) {
+            for node in self.nodes.iter_mut() {
+                let option = UpdateOption::new(
+                    self.neighbors.get(&node.id).unwrap().clone(),
+                    update_info.new_neighbors.get(&node.id).unwrap().clone(),
+                );
+
+                dbg!(option.clone());
+
+                let _ = node.update(cur_cycle, Some(&option)).map_err(|e| {
+                    panic!(
+                        "node: {}, cur_cycle: {} update error: {:?}",
+                        node.id, e, cur_cycle
+                    );
+                });
+            }
+
+            self.update_system(&update_info.new_neighbors);
+
+            return ();
         }
 
         // 各ノードの状態を更新する
         for node in self.nodes.iter_mut() {
-            let _ = node.update(cur_cycle).map_err(|e| {
+            let _ = node.update(cur_cycle, None).map_err(|e| {
                 panic!(
                     "node: {}, cur_cycle: {} update error: {:?}",
                     node.id, e, cur_cycle
                 );
             });
         }
+
+        return ();
     }
 
     fn update_system(&mut self, new_neighbors: &HashMap<String, Vec<String>>) {

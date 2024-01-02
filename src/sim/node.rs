@@ -5,6 +5,7 @@ use crate::hardware::switching::Switching;
 use crate::hardware::Hardware;
 use crate::network::core_functions::packets::InjectionPacket;
 use crate::network::flit::Flit;
+use crate::network::option::UpdateOption;
 use crate::network::Network;
 use crate::sim::node_type::NodeType;
 
@@ -62,7 +63,11 @@ impl Node {
         Ok(ack)
     }
 
-    pub fn update(&mut self, cur_cycle: u32) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn update(
+        &mut self,
+        cur_cycle: u32,
+        option: Option<&UpdateOption>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         self.cur_cycle = cur_cycle;
 
         // packetsにcur_cycleが含まれていたら
@@ -71,7 +76,7 @@ impl Node {
             self.network.send_new_packet(packet);
         }
 
-        self.network.update(cur_cycle);
+        self.network.update(cur_cycle, option);
 
         // retransmission_bufferが空なら
         if self.hardware.retransmission_buffer.is_empty() {
@@ -98,8 +103,4 @@ impl Node {
         }
         Ok(())
     }
-
-    pub fn shutdown(&mut self) {}
-
-    pub fn reboot(&mut self) {}
 }

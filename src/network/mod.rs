@@ -1,6 +1,7 @@
 pub mod core_functions;
 pub mod flit;
 pub mod flit_buffer;
+pub mod option;
 pub mod vid;
 
 use self::core_functions::packets::InjectionPacket;
@@ -9,10 +10,10 @@ use self::flit::packet_to_flits;
 use self::flit_buffer::{FlitBuffer, ReceivedFlitsBuffer};
 use self::vid::*;
 use crate::hardware::switching::Switching;
-
 use crate::log::{post_new_packet_log, update_packet_log, NewPacketLogInfo, UpdatePacketLogInfo};
 use crate::network::core_functions::packets::Packet;
 use crate::network::flit::Flit;
+use crate::network::option::UpdateOption;
 use crate::sim::node_type::NodeType;
 use std::collections::HashMap;
 
@@ -81,10 +82,10 @@ impl Network {
         None
     }
 
-    pub fn update(&mut self, cur_cycle: u32) {
+    pub fn update(&mut self, cur_cycle: u32, option: Option<&UpdateOption>) {
         self.cur_cycle = cur_cycle;
 
-        self.core.update();
+        self.core.update(option);
 
         // 送信待ちのパケットを取りに行く
         if let Some(packet) = self.core.send_packet() {
@@ -149,20 +150,40 @@ impl Network {
                 }
             }
         } else if flit.get_next_id().unwrap() == self.id {
-            // receiving_flit_bufferのchannel_id番目のFlitBufferにpushする
-            self.receiving_flit_buffer
-                .get_mut(&channel_id)
-                .unwrap()
-                .push(flit);
+            if self.switching == Switching::StoreAndForward {
+                // ルーティングするフリットの処理
+                self.received_flits_buffer.push_flit(flit);
 
-            if flit.is_last() {
-                while !self
-                    .receiving_flit_buffer
-                    .get(&channel_id)
+                if flit.is_last() {
+                    if let Some(packet) = self.received_flits_buffer.pop_packet(
+                        &flit.get_source_id().unwrap(),
+                        flit.get_packet_id().unwrap(),
+                    ) {
+                        eprintln!("receive routing packet {:?}", packet);
+                        self.core.receive_packet(&packet);
+
+                        // log
+                        self.log_handler(Some(flit), None);
+                    }
+                }
+            }
+
+            if self.switching == Switching::CutThrough {
+                // receiving_flit_bufferのchannel_id番目のFlitBufferにpushする
+                self.receiving_flit_buffer
+                    .get_mut(&channel_id)
                     .unwrap()
-                    .is_empty()
-                {
-                    self.forward_flits(channel_id);
+                    .push(flit);
+
+                if flit.is_last() {
+                    while !self
+                        .receiving_flit_buffer
+                        .get(&channel_id)
+                        .unwrap()
+                        .is_empty()
+                    {
+                        self.forward_flits(channel_id);
+                    }
                 }
             }
         }
@@ -179,7 +200,7 @@ impl Network {
 
 impl Network {
     fn forward_flits(&mut self, channel_id: u8) {
-        // receiving_flit_bufferからsending_flit_bufferへフリットを転送する
+        // ここでCutThroughならフリットをそのまま転送する
         if let Some(flit) = self
             .receiving_flit_buffer
             .get_mut(&channel_id)
@@ -294,12 +315,12 @@ mod tests {
             source_id: "test".to_string(),
         };
         network.send_new_packet(&packet);
-        network.update(0);
+        network.update(0, None);
 
         // preq
         network.send_flit().unwrap();
 
-        network.update(1);
+        network.update(1, None);
         let flit = network.send_flit().unwrap();
 
         assert_eq!(flit.get_source_id().unwrap(), "test".to_string());
@@ -327,12 +348,12 @@ mod tests {
             source_id: "test".to_string(),
         };
         network.send_new_packet(&packet);
-        network.update(0);
+        network.update(0, None);
 
         // preq
         network.send_flit().unwrap();
 
-        network.update(1);
+        network.update(1, None);
         let flit = network.send_flit().unwrap();
 
         assert_eq!(flit.get_source_id().unwrap(), "test".to_string());
