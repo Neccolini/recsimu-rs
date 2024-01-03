@@ -1,7 +1,7 @@
 use crate::hardware::state::State;
 use crate::log::{post_collision_info, NewCollisionInfo};
 use crate::network::flit::Flit;
-use crate::network::option::{self, UpdateOption};
+use crate::network::option::UpdateOption;
 use crate::sim::node::{Node, NodeId};
 use crate::sim::rec::RecTable;
 use std::collections::HashMap;
@@ -131,7 +131,7 @@ impl Nodes {
 
             self.update_system(&update_info.new_neighbors);
 
-            return ();
+            return;
         }
 
         // 各ノードの状態を更新する
@@ -143,8 +143,6 @@ impl Nodes {
                 );
             });
         }
-
-        return ();
     }
 
     fn update_system(&mut self, new_neighbors: &HashMap<String, Vec<String>>) {

@@ -13,9 +13,9 @@ impl UpdateOption {
         let mut vids = vec![];
 
         for old_neighbor in old_neighbors.iter() {
-            if !new_neighbors.contains(&old_neighbor) {
+            if !new_neighbors.contains(old_neighbor) {
                 pids.push(old_neighbor.clone());
-                vids.push(get_vid(&old_neighbor).unwrap());
+                vids.push(get_vid(old_neighbor).unwrap());
             }
         }
 

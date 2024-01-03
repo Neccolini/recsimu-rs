@@ -6,7 +6,7 @@ use crate::network::vid::get_pid;
 use crate::network::vid::get_vid;
 use crate::recsimu_dbg;
 use crate::sim::node_type::NodeType;
-use crate::sim::rec;
+
 use once_cell::sync::Lazy;
 use rand::Rng;
 use std::collections::HashSet;
@@ -300,15 +300,15 @@ impl DynamicFunction {
     }
 
     fn process_received_packet(&mut self, packet: &DynamicPacket) -> Vec<DynamicPacket> {
-        print_packet(self.id, &packet);
+        print_packet(self.id, packet);
         // 自分宛でなければ何もしない
         if packet.next_id != self.id && packet.next_id != BROADCAST_ID {
             return vec![];
         }
 
-        let (is_rec_packets, res) = self.dynamic_rec(&packet);
+        let (is_rec_packets, res) = self.dynamic_rec(packet);
         eprintln!("send packets: ");
-        res.iter().map(|x| print_packet(self.id, &x));
+        res.iter().for_each(|x| print_packet(self.id, x));
 
         if is_rec_packets {
             return res;
@@ -766,8 +766,7 @@ impl DynamicFunction {
             }
 
             let rec_info = RecInfo::new(
-                packet.channel_id,
-                &self.children_ids.get(&packet.channel_id).unwrap(),
+                self.children_ids.get(&packet.channel_id).unwrap(),
                 packet.source_id,
                 Some(self.parent_ids[packet.channel_id as usize]),
             );
@@ -1140,12 +1139,8 @@ impl DynamicFunction {
 
                     self.parent_ids[index as usize] = 0; // 親の削除
 
-                    let rec_info = RecInfo::new(
-                        index,
-                        &self.children_ids.get(&index).unwrap(),
-                        self.id,
-                        None,
-                    );
+                    let rec_info =
+                        RecInfo::new(self.children_ids.get(&index).unwrap(), self.id, None);
 
                     self.rec_info.insert(index, rec_info); // 再構成情報の追加
 
@@ -1184,7 +1179,6 @@ impl DynamicFunction {
 
 #[derive(Clone, Debug)]
 struct RecInfo {
-    channel_id: u8,
     is_rec: bool,
     rec_cnt: u8,
     children: HashSet<u32>,
@@ -1192,14 +1186,8 @@ struct RecInfo {
     old_parent_id: Option<u32>,
 }
 impl RecInfo {
-    fn new(
-        channel_id: u8,
-        children: &HashSet<u32>,
-        init_node_id: u32,
-        old_parent_id: Option<u32>,
-    ) -> Self {
+    fn new(children: &HashSet<u32>, init_node_id: u32, old_parent_id: Option<u32>) -> Self {
         Self {
-            channel_id,
             is_rec: false,
             rec_cnt: 0,
             children: children.clone(),
@@ -1212,7 +1200,6 @@ impl RecInfo {
         if self.is_rec {
             self.is_rec = false;
             self.rec_cnt = 0;
-        } else {
         }
     }
 
@@ -1243,6 +1230,7 @@ impl ChildrenTable {
         self.table.get_mut(&channel_id).unwrap().insert(node_id);
     }
 
+    /*
     fn pop(&mut self, channel_id: u8) -> Option<u32> {
         // channel_id番目のHashSetから一つ取り出し，その要素を削除する
         let set = self.table.get_mut(&channel_id).unwrap();
@@ -1258,6 +1246,7 @@ impl ChildrenTable {
     fn contains(&self, channel_id: u8, node_id: u32) -> bool {
         self.table.get(&channel_id).unwrap().contains(&node_id)
     }
+    */
 
     fn get(&self, channel_id: &u8) -> Option<&HashSet<u32>> {
         self.table.get(channel_id)
