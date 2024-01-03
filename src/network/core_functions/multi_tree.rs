@@ -437,12 +437,14 @@ impl MultiTreeFunction {
 
             // address to others, "jreq"
             (_, "jreq") => {
-                panic!("jreq destination must be coordinator");
+                self.update_table(packet.source_id, packet.prev_id, packet.channel_id);
+
+                return self.routing(packet);
             }
 
             // address to others, "jack"
             (_, "jack") => {
-                panic!("jack cannot be reached to coordinator");
+                return self.routing(packet);
             }
 
             // address to others, user packet

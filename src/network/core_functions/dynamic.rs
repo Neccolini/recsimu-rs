@@ -307,7 +307,7 @@ impl DynamicFunction {
         }
 
         let (is_rec_packets, res) = self.dynamic_rec(packet);
-        eprintln!("send packets: ");
+
         res.iter().for_each(|x| print_packet(self.id, x));
 
         if is_rec_packets {
@@ -425,7 +425,7 @@ impl DynamicFunction {
             // address to me, "jack"
             (id, "jack") if id == self.id => {
                 // channel_id番目のnetwork_joinedをtrue
-                eprintln!("network joined {} {}", self.id, packet.prev_id);
+                recsimu_dbg!("network joined {} {}", self.id, packet.prev_id);
                 self.network_joined[packet.channel_id as usize] = true;
 
                 if self.is_joined() {
@@ -593,7 +593,7 @@ impl DynamicFunction {
 
             // address to me, "jack"
             (id, "jack") if id == self.id => {
-                eprintln!("network joined {} {}", self.id, packet.prev_id);
+                recsimu_dbg!("network joined {} {}", self.id, packet.prev_id);
                 // channel_id番目のnetwork_joinedをtrue
                 self.network_joined[packet.channel_id as usize] = true;
 
@@ -774,8 +774,8 @@ impl DynamicFunction {
             self.rec_info.insert(packet.channel_id, rec_info);
 
             self.root_ids[packet.channel_id as usize] = packet.source_id;
+
             // 葉ノードなら
-            eprintln!("{} {:?}", self.id, self.parent_ids.clone());
             if self.children_ids.is_empty(&packet.channel_id) {
                 let packet = self.gen_packet(
                     self.id,
@@ -952,16 +952,9 @@ impl DynamicFunction {
                 .parse::<u32>()
                 .unwrap();
 
-            if root_id == self.root_ids[packet.channel_id as usize] {
+            if root_id >= self.root_ids[packet.channel_id as usize] {
                 return (true, res);
             }
-
-            assert!(
-                root_id < self.root_ids[packet.channel_id as usize],
-                "root_id: {}, self.root_ids[packet.channel_id as usize]: {}",
-                root_id,
-                self.root_ids[packet.channel_id as usize]
-            );
 
             self.root_ids[packet.channel_id as usize] = root_id; // ルートノードの更新
 
@@ -1129,7 +1122,6 @@ impl DynamicFunction {
             // ただし再構成フラグのブロードキャストの不備によりIDバトルの勝敗が逆になってしまった場合でもそのまま続行する
 
             for &dc_node_id in option.vids.iter() {
-                eprintln!("{} {} {:?}", self.id, dc_node_id, self.parent_ids);
                 for index in 0..self.channel_num {
                     let parent_id = self.parent_ids[index as usize];
 

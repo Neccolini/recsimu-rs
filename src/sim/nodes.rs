@@ -119,8 +119,6 @@ impl Nodes {
                     update_info.new_neighbors.get(&node.id).unwrap().clone(),
                 );
 
-                dbg!(option.clone());
-
                 let _ = node.update(cur_cycle, Some(&option)).map_err(|e| {
                     panic!(
                         "node: {}, cur_cycle: {} update error: {:?}",
