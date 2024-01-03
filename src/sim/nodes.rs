@@ -1,22 +1,29 @@
 use crate::hardware::state::State;
 use crate::log::{post_collision_info, NewCollisionInfo};
 use crate::network::flit::Flit;
+use crate::network::option::UpdateOption;
 use crate::sim::node::{Node, NodeId};
+use crate::sim::rec::RecTable;
 use std::collections::HashMap;
-
 pub struct Nodes {
     pub nodes: Vec<Node>,
     pub flit_buffers: HashMap<NodeId, Vec<Flit>>,
     // ノードの隣接情報を保持するHashMap
     pub neighbors: HashMap<NodeId, Vec<NodeId>>,
+    pub rec_table: RecTable,
 }
 
 impl Nodes {
-    pub fn new(nodes: &[Node], neighbors: &HashMap<NodeId, Vec<NodeId>>) -> Self {
+    pub fn new(
+        nodes: &[Node],
+        neighbors: &HashMap<NodeId, Vec<NodeId>>,
+        rec_table: &RecTable,
+    ) -> Self {
         Self {
             nodes: nodes.to_owned(),
             flit_buffers: HashMap::new(),
             neighbors: neighbors.clone(),
+            rec_table: rec_table.clone(),
         }
     }
 
@@ -103,16 +110,41 @@ impl Nodes {
         // flit_buffersをクリア
         self.flit_buffers.clear();
     }
+
     fn update_nodes(&mut self, cur_cycle: u32) {
+        if let Some(update_info) = self.rec_table.clone().table.get(&cur_cycle) {
+            for node in self.nodes.iter_mut() {
+                let option = UpdateOption::new(
+                    self.neighbors.get(&node.id).unwrap().clone(),
+                    update_info.new_neighbors.get(&node.id).unwrap().clone(),
+                );
+
+                let _ = node.update(cur_cycle, Some(&option)).map_err(|e| {
+                    panic!(
+                        "node: {}, cur_cycle: {} update error: {:?}",
+                        node.id, e, cur_cycle
+                    );
+                });
+            }
+
+            self.update_system(&update_info.new_neighbors);
+
+            return;
+        }
+
         // 各ノードの状態を更新する
         for node in self.nodes.iter_mut() {
-            let _ = node.update(cur_cycle).map_err(|e| {
+            let _ = node.update(cur_cycle, None).map_err(|e| {
                 panic!(
                     "node: {}, cur_cycle: {} update error: {:?}",
                     node.id, e, cur_cycle
                 );
             });
         }
+    }
+
+    fn update_system(&mut self, new_neighbors: &HashMap<String, Vec<String>>) {
+        self.neighbors = new_neighbors.clone();
     }
 }
 
@@ -135,6 +167,10 @@ mod tests {
         neighbors.insert("node1".to_string(), vec!["node2".to_string()]);
         neighbors.insert("node2".to_string(), vec!["node1".to_string()]);
 
+        let rec_table = RecTable {
+            table: HashMap::new(),
+        };
+
         let mut nodes = Nodes::new(
             &vec![
                 Node::new(
@@ -155,6 +191,7 @@ mod tests {
                 ),
             ],
             &neighbors,
+            &rec_table,
         );
 
         nodes.run_cycle(0);

@@ -1,15 +1,17 @@
 pub mod default;
+pub mod dynamic;
 pub mod multi_tree;
 pub mod packets;
 
-use crate::{network::flit::Flit, sim::node_type::NodeType};
-
 use self::packets::{InjectionPacket, Packet};
+use crate::network::option::UpdateOption;
+use crate::{network::flit::Flit, sim::node_type::NodeType};
 
 #[derive(Debug, Clone)]
 pub enum CoreFunction {
     DefaultFunction(default::DefaultFunction),
     MultiTreeFunction(multi_tree::MultiTreeFunction),
+    DynamicFunction(dynamic::DynamicFunction),
 }
 
 impl CoreFunction {
@@ -21,14 +23,18 @@ impl CoreFunction {
                 node_type,
                 channel_num,
             )),
+            "dynamic" => {
+                CoreFunction::DynamicFunction(dynamic::DynamicFunction::new(node_type, channel_num))
+            }
             _ => panic!("invalid routing function kind: {}", rf_kind),
         }
     }
 
-    pub(crate) fn update(&mut self) {
+    pub(crate) fn update(&mut self, option: Option<&UpdateOption>) {
         match self {
             CoreFunction::DefaultFunction(rf) => rf.update(),
             CoreFunction::MultiTreeFunction(rf) => rf.update(),
+            CoreFunction::DynamicFunction(rf) => rf.update(option),
         }
     }
 
@@ -36,6 +42,7 @@ impl CoreFunction {
         match self {
             CoreFunction::DefaultFunction(rf) => rf.push_new_packet(packet),
             CoreFunction::MultiTreeFunction(rf) => rf.push_new_packet(packet),
+            CoreFunction::DynamicFunction(rf) => rf.push_new_packet(packet),
         }
     }
 
@@ -43,6 +50,7 @@ impl CoreFunction {
         match self {
             CoreFunction::DefaultFunction(rf) => rf.send_packet(),
             CoreFunction::MultiTreeFunction(rf) => rf.send_packet(),
+            CoreFunction::DynamicFunction(rf) => rf.send_packet(),
         }
     }
 
@@ -50,6 +58,7 @@ impl CoreFunction {
         match self {
             CoreFunction::DefaultFunction(rf) => rf.receive_packet(packet),
             CoreFunction::MultiTreeFunction(rf) => rf.receive_packet(packet),
+            CoreFunction::DynamicFunction(rf) => rf.receive_packet(packet),
         }
     }
 
@@ -57,6 +66,7 @@ impl CoreFunction {
         match self {
             CoreFunction::DefaultFunction(rf) => rf.forward_flit(flit),
             CoreFunction::MultiTreeFunction(rf) => rf.forward_flit(flit),
+            CoreFunction::DynamicFunction(rf) => rf.forward_flit(flit),
         }
     }
 
@@ -64,6 +74,7 @@ impl CoreFunction {
         match self {
             CoreFunction::DefaultFunction(rf) => rf.id,
             CoreFunction::MultiTreeFunction(rf) => rf.id,
+            CoreFunction::DynamicFunction(rf) => rf.id,
         }
     }
 
@@ -71,6 +82,7 @@ impl CoreFunction {
         match self {
             CoreFunction::DefaultFunction(rf) => rf.is_joined(),
             CoreFunction::MultiTreeFunction(rf) => rf.is_joined(),
+            CoreFunction::DynamicFunction(rf) => rf.is_joined(),
         }
     }
 
@@ -85,6 +97,18 @@ impl CoreFunction {
                 let p = packets::MultiTreePacket::from_general(packet);
                 p.message
             }
+            CoreFunction::DynamicFunction(_) => {
+                let p = packets::DynamicPacket::from_general(packet);
+                p.message
+            }
+        }
+    }
+
+    pub(crate) fn get_parent_id(&self) -> Vec<Option<u32>> {
+        match self {
+            CoreFunction::DefaultFunction(f) => vec![f.get_parent_id()],
+            CoreFunction::MultiTreeFunction(f) => f.get_parent_id(),
+            CoreFunction::DynamicFunction(f) => f.get_parent_id(),
         }
     }
 }

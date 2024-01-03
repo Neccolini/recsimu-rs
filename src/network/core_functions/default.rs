@@ -65,6 +65,10 @@ impl DefaultFunction {
         self.network_joined
     }
 
+    pub fn get_parent_id(&self) -> Option<u32> {
+        self.parent_id
+    }
+
     pub fn push_new_packet(&mut self, packet: &InjectionPacket) {
         let dest_vid = get_vid(&packet.dest_id).unwrap();
         let channel_id = self.channel_id(dest_vid);

@@ -82,3 +82,31 @@ impl MultiTreePacket {
         dp
     }
 }
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[allow(dead_code)]
+pub(crate) struct DynamicPacket {
+    pub(crate) message: String,
+    pub(crate) dest_id: u32,
+    pub(crate) prev_id: u32,
+    pub(crate) next_id: u32,
+    pub(crate) source_id: u32,
+    pub(crate) packet_id: u32,
+    pub(crate) channel_id: u8,
+}
+
+impl DynamicPacket {
+    pub(crate) fn from_general(gp: &Packet) -> Self {
+        // dataをでコード
+        let mut dp = bincode::deserialize::<DynamicPacket>(gp.data.as_slice())
+            .map_err(|e| {
+                panic!("error occured while serializing a packet: {e:?}");
+            })
+            .unwrap();
+
+        dp.prev_id = get_vid(&gp.prev_id).unwrap();
+        dp.next_id = get_vid(&gp.next_id).unwrap();
+
+        dp
+    }
+}
