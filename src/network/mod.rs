@@ -196,6 +196,24 @@ impl Network {
     pub fn is_joined(&self) -> bool {
         self.core.is_joined()
     }
+
+    pub fn get_pid(&self) -> String {
+        self.id.clone()
+    }
+
+    pub fn get_parent_pid(&self) -> Vec<Option<String>> {
+        self.core
+            .get_parent_id()
+            .iter()
+            .map(|id| {
+                if id.is_some() {
+                    get_pid(id.unwrap())
+                } else {
+                    None
+                }
+            })
+            .collect()
+    }
 }
 
 impl Network {

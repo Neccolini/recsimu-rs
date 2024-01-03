@@ -7,6 +7,7 @@ use crate::file::InputFile;
 use crate::hardware::switching::Switching;
 use crate::log::aggregate_log;
 use crate::network::core_functions::packets::InjectionPacket;
+use crate::recsimu_dbg;
 use crate::sim::rec::RecTable;
 use std::collections::HashMap;
 use std::{error, path::Path, path::PathBuf};
@@ -95,9 +96,22 @@ impl Sim {
     pub fn run(&mut self) {
         // シミュレーションを実行する
         while self.cur_cycles < self.total_cycles {
+            recsimu_dbg!("cycle: {}", self.cur_cycles);
             self.nodes.run_cycle(self.cur_cycles);
             self.cur_cycles += 1;
         }
+
+        print!("[");
+        for node in &self.nodes.nodes {
+            if node.network.get_parent_pid()[0].is_some() {
+                recsimu_dbg!(
+                    "[{}, {}],",
+                    node.network.get_pid(),
+                    node.network.get_parent_pid()[0].clone().unwrap()
+                );
+            }
+        }
+        println!("]");
 
         println!("{:?}", aggregate_log(self.log_range[0], self.log_range[1]));
     }
